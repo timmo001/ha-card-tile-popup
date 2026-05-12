@@ -186,8 +186,13 @@ export class TilePopupDialog extends LitElement {
     this.dispatchEvent(new CustomEvent("closed"));
   }
 
-  private _handleBottomSheetClosed() {
+  private _handleBottomSheetClosed(ev: Event) {
+    if (ev.eventPhase !== Event.AT_TARGET) {
+      return;
+    }
+
     this._open = false;
+    this._popoverOpen = false;
     this.dispatchEvent(new CustomEvent("closed"));
   }
 
