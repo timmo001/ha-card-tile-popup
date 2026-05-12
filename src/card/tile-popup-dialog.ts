@@ -145,9 +145,12 @@ export class TilePopupDialog extends LitElement {
     if (presentationMode === "bottom-sheet") {
       return html`<ha-bottom-sheet
         .open=${this._open}
+        flexContent
         aria-label=${popupLabel}
         @closed=${this._handleBottomSheetClosed}
-      >${content}</ha-bottom-sheet>`;
+      >
+        <div class="bottom-sheet-surface">${content}</div>
+      </ha-bottom-sheet>`;
     }
 
     return html`<wa-popover
@@ -190,8 +193,11 @@ export class TilePopupDialog extends LitElement {
 
   static styles = css`
     ha-bottom-sheet {
-      --dialog-content-padding: var(--ha-space-4);
-      --ha-bottom-sheet-content-padding: var(--ha-space-4);
+      --dialog-content-padding: 0;
+      --ha-bottom-sheet-height: calc(100dvh - var(--ha-space-12));
+      --ha-bottom-sheet-max-height: var(--ha-bottom-sheet-height);
+      --ha-bottom-sheet-padding: 0;
+      --ha-bottom-sheet-content-padding: 0;
     }
 
     wa-popover {
@@ -235,8 +241,20 @@ export class TilePopupDialog extends LitElement {
       padding: var(--ha-space-4);
     }
 
+    .bottom-sheet-surface {
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      min-height: 0;
+      max-height: inherit;
+      overflow: auto;
+      padding: var(--ha-space-4);
+    }
+
     hui-section {
       display: block;
+      width: 100%;
+      max-width: 100%;
     }
   `;
 }
