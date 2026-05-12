@@ -3,7 +3,9 @@
 A custom Home Assistant card that displays a tile-style button. Tapping it opens a popup containing configurable cards.
 
 > [!WARNING]
-> This card is experimental, breaking changes may occur.
+> This card is experimental, breaking changes may occur. No support will be given
+
+<img width="776" height="1108" alt="image" src="https://github.com/user-attachments/assets/65103d00-4980-4a37-98ff-1a711bc48795" />
 
 ## Installation
 
