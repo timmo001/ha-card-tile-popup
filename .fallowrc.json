@@ -1,0 +1,3 @@
+{
+  "ignoreDependencies": ["@babel/preset-env", "@material/mwc-ripple"]
+}

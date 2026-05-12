@@ -1,0 +1,7 @@
+{
+  "name": "Tile Popup Card",
+  "content_in_root": false,
+  "filename": "tile-popup.js",
+  "homeassistant": "2025.6",
+  "render_readme": false
+}
