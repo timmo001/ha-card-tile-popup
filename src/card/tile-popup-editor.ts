@@ -112,6 +112,14 @@ const CARD_SCHEMA: readonly HaFormSchema[] = [
       },
     },
   },
+  {
+    name: "icon_color",
+    selector: {
+      ui_color: {
+        default_color: "primary",
+      },
+    },
+  },
 ] as const;
 
 const computeLabel = (schema: HaFormSchema): string | undefined => {
@@ -122,6 +130,8 @@ const computeLabel = (schema: HaFormSchema): string | undefined => {
       return "Secondary";
     case "icon":
       return "Icon";
+    case "icon_color":
+      return "Icon color";
     case "width":
       return "Popover width";
     default:

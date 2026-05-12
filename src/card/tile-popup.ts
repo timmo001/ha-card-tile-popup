@@ -3,6 +3,7 @@ import type { CSSResultGroup } from "lit";
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { assert } from "superstruct";
+import { computeCssColor } from "../../vendor/home-assistant-frontend/src/common/color/compute-color";
 import {
   CARD_DESCRIPTION,
   CARD_EDITOR_NAME,
@@ -135,9 +136,12 @@ export class TilePopup extends LitElement implements LovelaceCard {
 
     const label = this._config.label || CARD_NAME_FRIENDLY;
     const icon = this._config.icon;
+    const iconColor = this._config.icon_color
+      ? computeCssColor(this._config.icon_color)
+      : undefined;
 
     return html`
-      <ha-card>
+      <ha-card style=${iconColor ? `--tile-color: ${iconColor};` : nothing}>
         <ha-tile-container
           .interactive=${true}
           @click=${this._handleClick}

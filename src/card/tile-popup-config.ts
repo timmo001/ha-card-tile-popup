@@ -29,6 +29,7 @@ export interface TilePopupConfig extends LovelaceCardConfig {
   label?: string;
   secondary?: string;
   icon?: string;
+  icon_color?: string;
   width?: number | `${number}px`;
   cards: LovelaceCardConfig[];
 }
@@ -73,6 +74,7 @@ export const tilePopupConfigStruct = assign(
     label: optional(string()),
     secondary: optional(string()),
     icon: optional(string()),
+    icon_color: optional(string()),
     width: optional(widthStruct),
     cards: array(any()),
   })
