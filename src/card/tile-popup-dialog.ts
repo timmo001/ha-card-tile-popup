@@ -1,5 +1,7 @@
+import "@home-assistant/webawesome/dist/components/popover/popover";
 import { css, html, LitElement, nothing, type PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import "../../vendor/home-assistant-frontend/src/components/ha-bottom-sheet";
 import {
   computeTilePopupPopoverWidth,
   type TilePopupConfig,
