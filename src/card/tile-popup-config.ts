@@ -29,19 +29,19 @@ export interface TilePopupConfig extends LovelaceCardConfig {
   label?: string;
   secondary?: string;
   icon?: string;
-  section_width?: number | `${number}px`;
+  width?: number | `${number}px`;
   cards: LovelaceCardConfig[];
 }
 
-const sectionWidthStruct = union([
-  refine(number(), "section_width_sections", (value) =>
+const widthStruct = union([
+  refine(number(), "width_sections", (value) =>
     Number.isInteger(value) && value >= 1 && value <= 10
   ),
   pattern(string(), /^\d+(?:\.\d+)?px$/),
 ]);
 
 export const computeTilePopupPopoverWidth = (
-  value: TilePopupConfig["section_width"]
+  value: TilePopupConfig["width"]
 ): string | undefined => {
   if (typeof value === "number") {
     return `calc(${value} * var(--ha-view-sections-column-max-width, 500px) + ${Math.max(
@@ -58,7 +58,7 @@ export const computeTilePopupPopoverWidth = (
 };
 
 export const getTilePopupSectionWidthCount = (
-  value: TilePopupConfig["section_width"]
+  value: TilePopupConfig["width"]
 ): number => {
   if (typeof value === "number") {
     return value;
@@ -73,7 +73,7 @@ export const tilePopupConfigStruct = assign(
     label: optional(string()),
     secondary: optional(string()),
     icon: optional(string()),
-    section_width: optional(sectionWidthStruct),
+    width: optional(widthStruct),
     cards: array(any()),
   })
 );

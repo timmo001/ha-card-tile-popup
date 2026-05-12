@@ -28,7 +28,7 @@ export class TilePopupDialog extends LitElement {
 
   @property({ attribute: false }) public anchor?: Element;
 
-  @property({ attribute: false }) public sectionWidth?: TilePopupConfig["section_width"];
+  @property({ attribute: false }) public width?: TilePopupConfig["width"];
 
   @state() private _narrow = false;
 
@@ -66,8 +66,8 @@ export class TilePopupDialog extends LitElement {
   }
 
   protected override updated(changedProperties: PropertyValues<this>) {
-    if (changedProperties.has("sectionWidth")) {
-      const popoverWidth = computeTilePopupPopoverWidth(this.sectionWidth);
+    if (changedProperties.has("width")) {
+      const popoverWidth = computeTilePopupPopoverWidth(this.width);
 
       if (popoverWidth !== undefined) {
         this.style.setProperty("--tile-popup-width", popoverWidth);

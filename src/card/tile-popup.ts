@@ -172,7 +172,7 @@ export class TilePopup extends LitElement implements LovelaceCard {
     dialog.hass = this.hass;
     dialog.cards = this._config.cards;
     dialog.anchor = this;
-    dialog.sectionWidth = this._config.section_width;
+    dialog.width = this._config.width;
 
     dialog.addEventListener("closed", () => {
       dialog.remove();

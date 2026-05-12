@@ -73,7 +73,7 @@ const SECTION_WIDTH_DEFAULT = 1;
 
 const CARD_WIDTH_SCHEMA: readonly HaFormSchema[] = [
   {
-    name: "section_width",
+    name: "width",
     selector: {
       number: {
         min: SECTION_WIDTH_MIN,
@@ -122,7 +122,7 @@ const computeLabel = (schema: HaFormSchema): string | undefined => {
       return "Secondary";
     case "icon":
       return "Icon";
-    case "section_width":
+    case "width":
       return "Popover width";
     default:
       return undefined;
@@ -131,7 +131,7 @@ const computeLabel = (schema: HaFormSchema): string | undefined => {
 
 const computeHelper = (schema: HaFormSchema): string | undefined => {
   switch (schema.name) {
-    case "section_width":
+    case "width":
       return "Matches the sections view sizing scale. Use YAML with a px string for an exact width override.";
     default:
       return undefined;
@@ -220,7 +220,7 @@ class TilePopupEditor extends LitElement {
         <ha-form
           .hass=${this.hass}
           .data=${{
-            section_width: getTilePopupSectionWidthCount(this._config.section_width),
+            width: getTilePopupSectionWidthCount(this._config.width),
           }}
           .schema=${CARD_WIDTH_SCHEMA}
           .computeLabel=${computeLabel}
@@ -346,15 +346,15 @@ class TilePopupEditor extends LitElement {
       return;
     }
 
-    const sectionWidth = ev.detail.value.section_width;
+    const width = ev.detail.value.width;
 
-    if (typeof sectionWidth !== "number") {
+    if (typeof width !== "number") {
       return;
     }
 
     const config = {
       ...this._config,
-      section_width: sectionWidth,
+      width,
     } satisfies TilePopupConfig;
 
     this._config = config;
