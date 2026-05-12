@@ -1,6 +1,6 @@
 # Tile Popup Card
 
-A custom Home Assistant card that displays a tile-style button. Tapping it opens a popup containing configurable cards.
+A custom Home Assistant card that displays a tile which shows a popup containing cards.
 
 > [!WARNING]
 > This card is experimental, breaking changes may occur. No support will be given
