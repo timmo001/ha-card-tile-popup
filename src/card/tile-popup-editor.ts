@@ -12,6 +12,7 @@ import { customElement, property, query, state } from "lit/decorators.js";
 import { keyed } from "lit/directives/keyed.js";
 import { assert } from "superstruct";
 import { CARD_EDITOR_NAME } from "./const";
+import "./tile-popup-card-picker";
 import { type TilePopupConfig, tilePopupConfigStruct } from "./tile-popup-config";
 
 interface HomeAssistant {
@@ -136,14 +137,6 @@ const writeClipboard = (config: LovelaceCardConfig): void => {
 const cloneCardConfig = (config: LovelaceCardConfig): LovelaceCardConfig =>
   JSON.parse(JSON.stringify(config)) as LovelaceCardConfig;
 
-const ensureEditorDependencies = async (): Promise<void> => {
-  if (!customElements.get("hui-card-picker")) {
-    await import(
-      "../../vendor/home-assistant-frontend/src/panels/lovelace/editor/card-editor/hui-card-picker"
-    );
-  }
-};
-
 @customElement(CARD_EDITOR_NAME)
 class TilePopupEditor extends LitElement {
   @property({ attribute: false }) public hass?: HomeAssistant;
@@ -182,7 +175,6 @@ class TilePopupEditor extends LitElement {
     const cards = this._config.cards;
     const isGuiMode = !this._cardEditorEl || this._guiMode;
     const clipboard = readClipboard();
-    const hasCardPicker = customElements.get("hui-card-picker");
 
     return html`
       <ha-form
@@ -269,16 +261,11 @@ class TilePopupEditor extends LitElement {
                 )}
               `
             : html`
-                ${hasCardPicker
-                  ? html`
-                      <hui-card-picker
-                        .hass=${this.hass}
-                        .lovelace=${this.lovelace}
-                        .suggestedCards=${clipboard ? [clipboard.type] : undefined}
-                        @config-changed=${this._handleCardPicked}
-                      ></hui-card-picker>
-                    `
-                  : html`<div class="picker-unavailable">Card picker unavailable</div>`}
+                <tile-popup-card-picker
+                  .hass=${this.hass}
+                  .suggestedCards=${clipboard ? [clipboard.type] : undefined}
+                  @config-changed=${this._handleCardPicked}
+                ></tile-popup-card-picker>
               `}
         </div>
       </div>
@@ -454,12 +441,6 @@ class TilePopupEditor extends LitElement {
         border: 1px solid var(--divider-color);
         padding: 12px;
       }
-
-      .picker-unavailable {
-        color: var(--secondary-text-color);
-        padding: 16px 0;
-      }
-
       #card-options {
         display: flex;
         justify-content: flex-end;
@@ -483,5 +464,4 @@ class TilePopupEditor extends LitElement {
 export const ensureTilePopupEditor = async (): Promise<void> => {
   await customElements.whenDefined("ha-form");
   await customElements.whenDefined("hui-card-element-editor");
-  await ensureEditorDependencies();
 };
