@@ -37,6 +37,7 @@ export default defineConfig(({ watch }) => {
           "@babel/preset-env",
           {
             modules: false,
+            targets: { esmodules: true },
           },
         ],
       ],
