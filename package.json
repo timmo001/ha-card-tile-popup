@@ -18,6 +18,7 @@
     "type": "git",
     "url": "https://github.com/timmo001/ha-card-tile-popup"
   },
+  "packageManager": "pnpm@11.1.0",
   "license": "ISC",
   "dependencies": {
     "@mdi/js": "^7.4.47",
