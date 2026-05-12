@@ -1,6 +1,18 @@
 import { array, any, assign, object, optional, string } from "superstruct";
-import type { LovelaceCardConfig } from "../ha";
-import { lovelaceCardConfigStruct } from "../shared/config/lovelace-card-config";
+
+interface LovelaceCardConfig {
+  type: string;
+  [key: string]: unknown;
+}
+
+const baseLovelaceCardConfig = object({
+  type: string(),
+  view_layout: any(),
+  layout_options: any(),
+  grid_options: any(),
+  visibility: any(),
+  disabled: optional(any()),
+});
 
 export interface TilePopupConfig extends LovelaceCardConfig {
   label?: string;
@@ -10,7 +22,7 @@ export interface TilePopupConfig extends LovelaceCardConfig {
 }
 
 export const tilePopupConfigStruct = assign(
-  lovelaceCardConfigStruct,
+  baseLovelaceCardConfig,
   object({
     label: optional(string()),
     secondary: optional(string()),

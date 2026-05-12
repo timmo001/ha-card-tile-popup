@@ -1,13 +1,67 @@
-import { css, html, LitElement, nothing } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import {
+  mdiCodeBraces,
+  mdiContentCopy,
+  mdiContentCut,
+  mdiDelete,
+  mdiListBoxOutline,
+  mdiPlus,
+} from "@mdi/js";
+import type { CSSResultGroup } from "lit";
+import { LitElement, css, html, nothing } from "lit";
+import { customElement, property, query, state } from "lit/decorators.js";
+import { keyed } from "lit/directives/keyed.js";
 import { assert } from "superstruct";
-import { fireEvent } from "../ha/common/dom/fire_event";
-import { configElementStyle } from "../ha";
-import type { HomeAssistant, LovelaceConfig } from "../ha";
-import type { HaFormSchema } from "../utils/form/ha-form";
-import { CARD_EDITOR_NAME, CARD_NAME } from "./const";
+import { CARD_EDITOR_NAME } from "./const";
 import { type TilePopupConfig, tilePopupConfigStruct } from "./tile-popup-config";
-import "./tile-popup-card-list-editor";
+
+interface HomeAssistant {
+  localize(key: string): string;
+}
+
+interface LovelaceConfig {
+  views?: unknown[];
+}
+
+interface LovelaceCardConfig {
+  type: string;
+  [key: string]: unknown;
+}
+
+type HaFormSchema = {
+  name: string;
+  type?: "grid";
+  schema?: readonly HaFormSchema[];
+  selector?: Record<string, unknown>;
+};
+
+type HaFormValueChangedEvent = CustomEvent<{
+  value: Partial<TilePopupConfig>;
+}>;
+
+type ConfigChangedEvent = CustomEvent<{
+  config: LovelaceCardConfig;
+  guiModeAvailable?: boolean;
+}>;
+
+type GUIModeChangedEvent = CustomEvent<{
+  guiMode: boolean;
+  guiModeAvailable: boolean;
+}>;
+
+type TabChangedEvent = CustomEvent<{
+  name: string;
+}>;
+
+type MoveButton = HTMLElement & {
+  move: number;
+};
+
+type RuntimeCardEditor = HTMLElement & {
+  toggleMode(): void;
+  focusYamlEditor(): void;
+};
+
+const CLIPBOARD_KEY = "dashboardCardClipboard";
 
 const CARD_SCHEMA: readonly HaFormSchema[] = [
   {
@@ -38,64 +92,210 @@ const CARD_SCHEMA: readonly HaFormSchema[] = [
   },
 ] as const;
 
+const computeLabel = (schema: HaFormSchema): string | undefined => {
+  switch (schema.name) {
+    case "label":
+      return "Label";
+    case "secondary":
+      return "Secondary";
+    case "icon":
+      return "Icon";
+    default:
+      return undefined;
+  }
+};
+
+const emitConfigChanged = (target: HTMLElement, config: TilePopupConfig): void => {
+  target.dispatchEvent(
+    new CustomEvent("config-changed", {
+      detail: { config },
+      bubbles: true,
+      composed: true,
+    })
+  );
+};
+
+const readClipboard = (): LovelaceCardConfig | undefined => {
+  const value = sessionStorage.getItem(CLIPBOARD_KEY);
+
+  if (!value) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(value) as LovelaceCardConfig;
+  } catch {
+    return undefined;
+  }
+};
+
+const writeClipboard = (config: LovelaceCardConfig): void => {
+  sessionStorage.setItem(CLIPBOARD_KEY, JSON.stringify(config));
+};
+
+const cloneCardConfig = (config: LovelaceCardConfig): LovelaceCardConfig =>
+  JSON.parse(JSON.stringify(config)) as LovelaceCardConfig;
+
+const ensureEditorDependencies = async (): Promise<void> => {
+  if (!customElements.get("hui-card-picker")) {
+    await import(
+      "../../vendor/home-assistant-frontend/src/panels/lovelace/editor/card-editor/hui-card-picker"
+    );
+  }
+};
+
 @customElement(CARD_EDITOR_NAME)
-export class TilePopupEditor extends LitElement {
+class TilePopupEditor extends LitElement {
   @property({ attribute: false }) public hass?: HomeAssistant;
 
   @property({ attribute: false }) public lovelace?: LovelaceConfig;
 
   @state() private _config?: TilePopupConfig;
 
+  @state() private _selectedCard = 0;
+
+  @state() private _guiMode = true;
+
+  @state() private _guiModeAvailable = true;
+
+  private _keys = new Map<string, string>();
+
+  @query("hui-card-element-editor")
+  private _cardEditorEl?: RuntimeCardEditor;
+
   public setConfig(config: TilePopupConfig): void {
     assert(config, tilePopupConfigStruct);
     this._config = config;
+    this._selectedCard = Math.min(this._selectedCard, config.cards.length);
   }
 
-  protected render() {
+  public focusYamlEditor(): void {
+    this._cardEditorEl?.focusYamlEditor();
+  }
+
+  protected override render() {
     if (!this.hass || !this._config) {
       return nothing;
     }
+
+    const selected = this._selectedCard;
+    const cards = this._config.cards;
+    const isGuiMode = !this._cardEditorEl || this._guiMode;
+    const clipboard = readClipboard();
+    const hasCardPicker = customElements.get("hui-card-picker");
 
     return html`
       <ha-form
         .hass=${this.hass}
         .data=${this._config}
         .schema=${CARD_SCHEMA}
-        .computeLabel=${this._computeLabel}
-        @value-changed=${this._formValueChanged}
+        .computeLabel=${computeLabel}
+        @value-changed=${this._handleValueChanged}
       ></ha-form>
-      <div class="cards-header">Cards</div>
-      <tile-popup-card-list-editor
-        .hass=${this.hass}
-        .lovelace=${this.lovelace}
-        .config=${this._gridEditorConfig}
-        @config-changed=${this._cardsConfigChanged}
-      ></tile-popup-card-list-editor>
+      <div class="card-config">
+        <div class="toolbar">
+          <ha-tab-group @wa-tab-show=${this._handleSelectedCard}>
+            ${cards.map(
+              (_card, index) => html`
+                <ha-tab-group-tab
+                  slot="nav"
+                  .panel=${index}
+                  .active=${index === selected}
+                >
+                  ${index + 1}
+                </ha-tab-group-tab>
+              `
+            )}
+          </ha-tab-group>
+          <ha-icon-button
+            .path=${mdiPlus}
+            label="Add card"
+            @click=${this._handleAddCard}
+          ></ha-icon-button>
+        </div>
+
+        <div id="editor">
+          ${selected < cards.length
+            ? html`
+                <div id="card-options">
+                  <ha-icon-button
+                    class="gui-mode-button"
+                    .disabled=${!this._guiModeAvailable}
+                    .label=${isGuiMode
+                      ? "Show code editor"
+                      : "Show visual editor"}
+                    .path=${isGuiMode ? mdiCodeBraces : mdiListBoxOutline}
+                    @click=${this._toggleMode}
+                  ></ha-icon-button>
+                  <ha-icon-button-arrow-prev
+                    .disabled=${selected === 0}
+                    .label=${"Move before"}
+                    .move=${-1}
+                    @click=${this._handleMove}
+                  ></ha-icon-button-arrow-prev>
+                  <ha-icon-button-arrow-next
+                    .disabled=${selected === cards.length - 1}
+                    .label=${"Move after"}
+                    .move=${1}
+                    @click=${this._handleMove}
+                  ></ha-icon-button-arrow-next>
+                  <ha-icon-button
+                    .label=${"Copy"}
+                    .path=${mdiContentCopy}
+                    @click=${this._handleCopyCard}
+                  ></ha-icon-button>
+                  <ha-icon-button
+                    .label=${"Cut"}
+                    .path=${mdiContentCut}
+                    @click=${this._handleCutCard}
+                  ></ha-icon-button>
+                  <ha-icon-button
+                    .label=${"Delete"}
+                    .path=${mdiDelete}
+                    @click=${this._handleDeleteCard}
+                  ></ha-icon-button>
+                </div>
+                ${keyed(
+                  this._getKey(cards, selected),
+                  html`
+                    <hui-card-element-editor
+                      .hass=${this.hass}
+                      .value=${cards[selected]}
+                      .lovelace=${this.lovelace}
+                      @config-changed=${this._handleConfigChanged}
+                      @GUImode-changed=${this._handleGUIModeChanged}
+                    ></hui-card-element-editor>
+                  `
+                )}
+              `
+            : html`
+                ${hasCardPicker
+                  ? html`
+                      <hui-card-picker
+                        .hass=${this.hass}
+                        .lovelace=${this.lovelace}
+                        .suggestedCards=${clipboard ? [clipboard.type] : undefined}
+                        @config-changed=${this._handleCardPicked}
+                      ></hui-card-picker>
+                    `
+                  : html`<div class="picker-unavailable">Card picker unavailable</div>`}
+              `}
+        </div>
+      </div>
     `;
   }
 
-  private get _gridEditorConfig() {
-    return {
-      type: "grid",
-      cards: this._config?.cards ?? [],
-    };
+  private _getKey(cards: LovelaceCardConfig[], index: number): string {
+    const key = `${index}-${cards.length}`;
+
+    if (!this._keys.has(key)) {
+      this._keys.set(key, Math.random().toString());
+    }
+
+    return this._keys.get(key)!;
   }
 
-  private _computeLabel = (schema: HaFormSchema): string | undefined => {
-    switch (schema.name) {
-      case "label":
-        return "Label";
-      case "secondary":
-        return "Secondary";
-      case "icon":
-        return "Icon";
-      default:
-        return undefined;
-    }
-  };
-
-  private _formValueChanged = (ev: CustomEvent) => {
-    ev.stopPropagation();
+  private _handleValueChanged(ev: HaFormValueChangedEvent): void {
     if (!this._config) {
       return;
     }
@@ -103,56 +303,185 @@ export class TilePopupEditor extends LitElement {
     const config = {
       ...this._config,
       ...ev.detail.value,
-    };
+      cards: this._config.cards,
+    } satisfies TilePopupConfig;
 
-    this._configChanged(config);
-  };
+    this._config = config;
+    emitConfigChanged(this, config);
+  }
 
-  private _cardsConfigChanged = (
-    ev: CustomEvent<{ config: { cards?: TilePopupConfig["cards"] } }>
-  ) => {
-    ev.stopPropagation();
+  private _handleAddCard(): void {
     if (!this._config) {
       return;
     }
 
-    this._configChanged({
-      ...this._config,
-      cards: ev.detail.config.cards ?? [],
-    });
-  };
-
-  private _configChanged(config: TilePopupConfig) {
-    this._config = {
-      ...config,
-      type: `custom:${CARD_NAME}`,
-    };
-    this.dispatchEvent(
-      new CustomEvent("config-changed", {
-        detail: { config: this._config },
-      })
-    );
+    this._selectedCard = this._config.cards.length;
   }
 
-  static get styles() {
-    return [
-      configElementStyle,
-      css`
-        ha-form {
-          display: block;
-        }
+  private _handleSelectedCard(ev: TabChangedEvent): void {
+    this._guiMode = true;
+    this._guiModeAvailable = true;
+    this._selectedCard = Number(ev.detail.name);
+  }
 
-        .cards-header {
-          font-weight: 500;
-          font-size: var(--ha-font-size-l, 16px);
-          margin-top: var(--ha-space-4, 16px);
-          margin-bottom: var(--ha-space-2, 8px);
-        }
+  private _handleConfigChanged(ev: ConfigChangedEvent): void {
+    ev.stopPropagation();
 
-        tile-popup-card-list-editor {
-          display: block;
+    if (!this._config) {
+      return;
+    }
+
+    const cards = [...this._config.cards];
+    cards[this._selectedCard] = ev.detail.config;
+
+    const config = {
+      ...this._config,
+      cards,
+    };
+
+    this._config = config;
+    this._guiModeAvailable = ev.detail.guiModeAvailable ?? true;
+    emitConfigChanged(this, config);
+  }
+
+  private _handleCardPicked(ev: ConfigChangedEvent): void {
+    ev.stopPropagation();
+
+    if (!this._config) {
+      return;
+    }
+
+    const config = {
+      ...this._config,
+      cards: [...this._config.cards, ev.detail.config],
+    };
+
+    this._config = config;
+    this._selectedCard = config.cards.length - 1;
+    this._keys.clear();
+    emitConfigChanged(this, config);
+  }
+
+  private _handleCopyCard(): void {
+    if (!this._config) {
+      return;
+    }
+
+    writeClipboard(cloneCardConfig(this._config.cards[this._selectedCard]));
+  }
+
+  private _handleCutCard(): void {
+    this._handleCopyCard();
+    this._handleDeleteCard();
+  }
+
+  private _handleDeleteCard(): void {
+    if (!this._config) {
+      return;
+    }
+
+    const cards = [...this._config.cards];
+    cards.splice(this._selectedCard, 1);
+
+    const config = {
+      ...this._config,
+      cards,
+    };
+
+    this._config = config;
+    this._selectedCard = Math.min(this._selectedCard, Math.max(cards.length - 1, 0));
+    this._keys.clear();
+    emitConfigChanged(this, config);
+  }
+
+  private _handleMove(ev: Event): void {
+    if (!this._config) {
+      return;
+    }
+
+    const move = (ev.currentTarget as MoveButton).move;
+    const source = this._selectedCard;
+    const target = source + move;
+
+    if (target < 0 || target >= this._config.cards.length) {
+      return;
+    }
+
+    const cards = [...this._config.cards];
+    const [card] = cards.splice(source, 1);
+    cards.splice(target, 0, card);
+
+    const config = {
+      ...this._config,
+      cards,
+    };
+
+    this._config = config;
+    this._selectedCard = target;
+    this._keys.clear();
+    emitConfigChanged(this, config);
+  }
+
+  private _handleGUIModeChanged(ev: GUIModeChangedEvent): void {
+    ev.stopPropagation();
+    this._guiMode = ev.detail.guiMode;
+    this._guiModeAvailable = ev.detail.guiModeAvailable;
+  }
+
+  private _toggleMode(): void {
+    this._cardEditorEl?.toggleMode();
+  }
+
+  static get styles(): CSSResultGroup {
+    return css`
+      .card-config {
+        overflow: auto;
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      ha-tab-group {
+        flex-grow: 1;
+        min-width: 0;
+        --ha-tab-track-color: var(--card-background-color);
+      }
+
+      #editor {
+        border: 1px solid var(--divider-color);
+        padding: 12px;
+      }
+
+      .picker-unavailable {
+        color: var(--secondary-text-color);
+        padding: 16px 0;
+      }
+
+      #card-options {
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+      }
+
+      .gui-mode-button {
+        margin-inline-end: auto;
+        margin-inline-start: initial;
+      }
+
+      @media (max-width: 450px) {
+        #editor {
+          margin: 0 -12px;
         }
-      `,
-    ];
+      }
+    `;
   }
 }
+
+export const ensureTilePopupEditor = async (): Promise<void> => {
+  await customElements.whenDefined("ha-form");
+  await customElements.whenDefined("hui-card-element-editor");
+  await ensureEditorDependencies();
+};

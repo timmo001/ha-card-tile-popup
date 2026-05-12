@@ -1,15 +1,8 @@
+import { repository } from "../../package.json";
 import type { CSSResultGroup } from "lit";
-import { css, html, nothing } from "lit";
+import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { assert } from "superstruct";
-import type {
-  HomeAssistant,
-  LovelaceCard,
-  LovelaceCardEditor,
-  LovelaceGridOptions,
-} from "../ha";
-import { BaseElement } from "../utils/base-element";
-import { registerCustomCard } from "../utils/custom-cards";
 import {
   CARD_DESCRIPTION,
   CARD_EDITOR_NAME,
@@ -19,16 +12,72 @@ import {
 import { type TilePopupConfig, tilePopupConfigStruct } from "./tile-popup-config";
 import type { TilePopupDialog } from "./tile-popup-dialog";
 
-registerCustomCard({
-  type: CARD_NAME,
-  name: CARD_NAME_FRIENDLY,
-  description: CARD_DESCRIPTION,
-});
+interface HomeAssistant {
+  themes: {
+    darkMode?: boolean;
+  };
+}
+
+interface LovelaceCardConfig {
+  type: string;
+  [key: string]: unknown;
+}
+
+interface LovelaceCardEditor extends HTMLElement {
+  setConfig(config: LovelaceCardConfig): void;
+}
+
+interface LovelaceGridOptions {
+  columns?: number | "full";
+  rows?: number | "auto";
+  max_columns?: number;
+  min_columns?: number;
+  min_rows?: number;
+  max_rows?: number;
+}
+
+interface LovelaceCard extends HTMLElement {
+  hass?: HomeAssistant;
+  getCardSize(): number | Promise<number>;
+  getGridOptions?(): LovelaceGridOptions;
+  setConfig(config: LovelaceCardConfig): void;
+}
+
+type CustomCardRegistration = {
+  type: string;
+  name: string;
+  description: string;
+  preview: boolean;
+  documentationURL: string;
+};
+
+declare global {
+  interface Window {
+    customCards?: CustomCardRegistration[];
+  }
+}
+
+const customCards = window.customCards ?? [];
+
+if (!window.customCards) {
+  window.customCards = customCards;
+}
+
+if (!customCards.some((card) => card.type === CARD_NAME)) {
+  customCards.push({
+    type: CARD_NAME,
+    name: CARD_NAME_FRIENDLY,
+    description: CARD_DESCRIPTION,
+    preview: true,
+    documentationURL: `${repository.url}/blob/main/docs/cards/${CARD_NAME}.md`,
+  });
+}
 
 @customElement(CARD_NAME)
-export class TilePopup extends BaseElement implements LovelaceCard {
+export class TilePopup extends LitElement implements LovelaceCard {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    await import("./tile-popup-editor");
+    const { ensureTilePopupEditor } = await import("./tile-popup-editor");
+    await ensureTilePopupEditor();
     return document.createElement(CARD_EDITOR_NAME) as LovelaceCardEditor;
   }
 
@@ -40,11 +89,26 @@ export class TilePopup extends BaseElement implements LovelaceCard {
     };
   }
 
-  @property({ attribute: false }) public override hass!: HomeAssistant;
+  @property({ attribute: false }) public hass!: HomeAssistant;
 
   @state() private _config?: TilePopupConfig;
 
   private _dialogEl?: TilePopupDialog;
+
+  protected override updated(changedProps: PropertyValues<this>): void {
+    super.updated(changedProps);
+    if (!changedProps.has("hass") || !this.hass) {
+      return;
+    }
+
+    const previousHass = changedProps.get("hass") as HomeAssistant | undefined;
+    const previousDarkMode = previousHass ? Boolean(previousHass.themes.darkMode) : false;
+    const currentDarkMode = Boolean(this.hass.themes.darkMode);
+
+    if (previousDarkMode !== currentDarkMode) {
+      this.toggleAttribute("dark-mode", currentDarkMode);
+    }
+  }
 
   public setConfig(config: TilePopupConfig): void {
     assert(config, tilePopupConfigStruct);

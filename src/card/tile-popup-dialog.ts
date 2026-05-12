@@ -1,8 +1,14 @@
 import { css, html, LitElement, nothing, type PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { fireEvent } from "../ha/common/dom/fire_event";
-import type { LovelaceCardConfig } from "../ha";
-import type { HomeAssistant } from "../ha";
+
+interface HomeAssistant {
+  [key: string]: unknown;
+}
+
+interface LovelaceCardConfig {
+  type: string;
+  [key: string]: unknown;
+}
 
 const NARROW_MEDIA_QUERY = "(max-width: 870px), all and (max-height: 870px)";
 
@@ -53,7 +59,7 @@ export class TilePopupDialog extends LitElement {
     }
   }
 
-  protected updated() {
+  protected override updated() {
     if (this._presentationMode !== "popover") {
       this._cancelScheduledPopoverOpen();
       this._popoverOpen = false;
@@ -104,7 +110,7 @@ export class TilePopupDialog extends LitElement {
     return this._narrow ? "bottom-sheet" : "popover";
   }
 
-  protected render() {
+  protected override render() {
     if (!this.hass || !this.cards.length) {
       return nothing;
     }
@@ -158,12 +164,12 @@ export class TilePopupDialog extends LitElement {
     }
     this._open = false;
     this._popoverOpen = false;
-    fireEvent(this, "closed");
+    this.dispatchEvent(new CustomEvent("closed"));
   }
 
   private _handleBottomSheetClosed() {
     this._open = false;
-    fireEvent(this, "closed");
+    this.dispatchEvent(new CustomEvent("closed"));
   }
 
   static styles = css`
