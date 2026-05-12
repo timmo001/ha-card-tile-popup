@@ -179,7 +179,10 @@ export class TilePopupDialog extends LitElement {
     }
 
     wa-popover {
-      --width: min(var(--ha-dialog-width-lg, 1024px), 95vw);
+      --width: min(
+        calc(var(--ha-view-sections-column-max-width, 500px) + 2 * var(--ha-space-4)),
+        95vw
+      );
       --wa-color-surface-raised: var(
         --ha-dialog-surface-background,
         var(--card-background-color, var(--ha-color-surface-default))
