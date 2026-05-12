@@ -3,12 +3,11 @@ import { customElement, property, state } from "lit/decorators.js";
 import { assert } from "superstruct";
 import { fireEvent } from "../ha/common/dom/fire_event";
 import { configElementStyle } from "../ha";
-import type { HomeAssistant, LovelaceCardConfig, LovelaceConfig } from "../ha";
+import type { HomeAssistant, LovelaceConfig } from "../ha";
 import type { HaFormSchema } from "../utils/form/ha-form";
 import { CARD_EDITOR_NAME, CARD_NAME } from "./const";
 import { type TilePopupConfig, tilePopupConfigStruct } from "./tile-popup-config";
 import "./tile-popup-card-list-editor";
-import type { CardsChangedEvent } from "./tile-popup-card-list-editor";
 
 const CARD_SCHEMA: readonly HaFormSchema[] = [
   {
@@ -69,10 +68,17 @@ export class TilePopupEditor extends LitElement {
       <tile-popup-card-list-editor
         .hass=${this.hass}
         .lovelace=${this.lovelace}
-        .cards=${this._config.cards ?? []}
-        @cards-changed=${this._cardsChanged}
+        .config=${this._gridEditorConfig}
+        @config-changed=${this._cardsConfigChanged}
       ></tile-popup-card-list-editor>
     `;
+  }
+
+  private get _gridEditorConfig() {
+    return {
+      type: "grid",
+      cards: this._config?.cards ?? [],
+    };
   }
 
   private _computeLabel = (schema: HaFormSchema): string | undefined => {
@@ -102,7 +108,9 @@ export class TilePopupEditor extends LitElement {
     this._configChanged(config);
   };
 
-  private _cardsChanged = (ev: CustomEvent<CardsChangedEvent>) => {
+  private _cardsConfigChanged = (
+    ev: CustomEvent<{ config: { cards?: TilePopupConfig["cards"] } }>
+  ) => {
     ev.stopPropagation();
     if (!this._config) {
       return;
@@ -110,7 +118,7 @@ export class TilePopupEditor extends LitElement {
 
     this._configChanged({
       ...this._config,
-      cards: ev.detail.cards,
+      cards: ev.detail.config.cards ?? [],
     });
   };
 

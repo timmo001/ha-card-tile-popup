@@ -49,6 +49,15 @@ export default defineConfig(({ watch }) => {
   return {
     input: "src/card/tile-popup.ts",
     tsconfig: "./tsconfig.json",
+    resolve: {
+      alias: {
+        "lit/decorators": "lit/decorators.js",
+        "lit/directives/cache": "lit/directives/cache.js",
+        "lit/directives/class-map": "lit/directives/class-map.js",
+        "lit/directives/keyed": "lit/directives/keyed.js",
+        "lit/directives/until": "lit/directives/until.js",
+      },
+    },
     output: {
       dir: "dist",
       format: "es",
