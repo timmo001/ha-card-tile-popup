@@ -1,5 +1,9 @@
 import { css, html, LitElement, nothing, type PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import {
+  computeTilePopupPopoverWidth,
+  type TilePopupConfig,
+} from "./tile-popup-config";
 
 interface HomeAssistant {
   [key: string]: unknown;
@@ -23,6 +27,8 @@ export class TilePopupDialog extends LitElement {
   @property({ attribute: false }) public cards: LovelaceCardConfig[] = [];
 
   @property({ attribute: false }) public anchor?: Element;
+
+  @property({ attribute: false }) public sectionWidth?: TilePopupConfig["section_width"];
 
   @state() private _narrow = false;
 
@@ -59,7 +65,17 @@ export class TilePopupDialog extends LitElement {
     }
   }
 
-  protected override updated() {
+  protected override updated(changedProperties: PropertyValues<this>) {
+    if (changedProperties.has("sectionWidth")) {
+      const popoverWidth = computeTilePopupPopoverWidth(this.sectionWidth);
+
+      if (popoverWidth !== undefined) {
+        this.style.setProperty("--tile-popup-width", popoverWidth);
+      } else {
+        this.style.removeProperty("--tile-popup-width");
+      }
+    }
+
     if (this._presentationMode !== "popover") {
       this._cancelScheduledPopoverOpen();
       this._popoverOpen = false;
@@ -180,7 +196,10 @@ export class TilePopupDialog extends LitElement {
 
     wa-popover {
       --width: min(
-        calc(var(--ha-view-sections-column-max-width, 500px) + 2 * var(--ha-space-4)),
+        var(
+          --tile-popup-width,
+          calc(1 * var(--ha-view-sections-column-max-width, 500px) + 0 * var(--ha-view-sections-column-gap, 32px))
+        ),
         95vw
       );
       --wa-color-surface-raised: var(

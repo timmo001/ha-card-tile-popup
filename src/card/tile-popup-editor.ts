@@ -13,7 +13,11 @@ import { keyed } from "lit/directives/keyed.js";
 import { assert } from "superstruct";
 import { CARD_EDITOR_NAME } from "./const";
 import "./tile-popup-card-picker";
-import { type TilePopupConfig, tilePopupConfigStruct } from "./tile-popup-config";
+import {
+  getTilePopupSectionWidthCount,
+  type TilePopupConfig,
+  tilePopupConfigStruct,
+} from "./tile-popup-config";
 
 interface HomeAssistant {
   localize(key: string): string;
@@ -63,6 +67,23 @@ type RuntimeCardEditor = HTMLElement & {
 };
 
 const CLIPBOARD_KEY = "dashboardCardClipboard";
+const SECTION_WIDTH_MIN = 1;
+const SECTION_WIDTH_MAX = 10;
+const SECTION_WIDTH_DEFAULT = 1;
+
+const CARD_WIDTH_SCHEMA: readonly HaFormSchema[] = [
+  {
+    name: "section_width",
+    selector: {
+      number: {
+        min: SECTION_WIDTH_MIN,
+        max: SECTION_WIDTH_MAX,
+        mode: "slider",
+        slider_ticks: true,
+      },
+    },
+  },
+] as const;
 
 const CARD_SCHEMA: readonly HaFormSchema[] = [
   {
@@ -101,6 +122,17 @@ const computeLabel = (schema: HaFormSchema): string | undefined => {
       return "Secondary";
     case "icon":
       return "Icon";
+    case "section_width":
+      return "Popover width";
+    default:
+      return undefined;
+  }
+};
+
+const computeHelper = (schema: HaFormSchema): string | undefined => {
+  switch (schema.name) {
+    case "section_width":
+      return "Matches the sections view sizing scale. Use YAML with a px string for an exact width override.";
     default:
       return undefined;
   }
@@ -177,13 +209,25 @@ class TilePopupEditor extends LitElement {
     const clipboard = readClipboard();
 
     return html`
-      <ha-form
-        .hass=${this.hass}
-        .data=${this._config}
-        .schema=${CARD_SCHEMA}
-        .computeLabel=${computeLabel}
-        @value-changed=${this._handleValueChanged}
-      ></ha-form>
+      <div class="settings">
+        <ha-form
+          .hass=${this.hass}
+          .data=${this._config}
+          .schema=${CARD_SCHEMA}
+          .computeLabel=${computeLabel}
+          @value-changed=${this._handleValueChanged}
+        ></ha-form>
+        <ha-form
+          .hass=${this.hass}
+          .data=${{
+            section_width: getTilePopupSectionWidthCount(this._config.section_width),
+          }}
+          .schema=${CARD_WIDTH_SCHEMA}
+          .computeLabel=${computeLabel}
+          .computeHelper=${computeHelper}
+          @value-changed=${this._handleWidthValueChanged}
+        ></ha-form>
+      </div>
       <div class="card-config">
         <div class="toolbar">
           <ha-tab-group @wa-tab-show=${this._handleSelectedCard}>
@@ -291,6 +335,26 @@ class TilePopupEditor extends LitElement {
       ...this._config,
       ...ev.detail.value,
       cards: this._config.cards,
+    } satisfies TilePopupConfig;
+
+    this._config = config;
+    emitConfigChanged(this, config);
+  }
+
+  private _handleWidthValueChanged(ev: HaFormValueChangedEvent): void {
+    if (!this._config) {
+      return;
+    }
+
+    const sectionWidth = ev.detail.value.section_width;
+
+    if (typeof sectionWidth !== "number") {
+      return;
+    }
+
+    const config = {
+      ...this._config,
+      section_width: sectionWidth,
     } satisfies TilePopupConfig;
 
     this._config = config;
@@ -421,6 +485,12 @@ class TilePopupEditor extends LitElement {
 
   static get styles(): CSSResultGroup {
     return css`
+      .settings {
+        display: grid;
+        gap: var(--ha-space-4);
+        padding: 0 12px 12px;
+      }
+
       .card-config {
         overflow: auto;
       }
