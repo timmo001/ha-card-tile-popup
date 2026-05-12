@@ -3,6 +3,7 @@ import type { CSSResultGroup } from "lit";
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { assert } from "superstruct";
+import type { ActionHandlerEvent } from "../../vendor/home-assistant-frontend/src/data/lovelace/action_handler";
 import { computeCssColor } from "../../vendor/home-assistant-frontend/src/common/color/compute-color";
 import {
   CARD_DESCRIPTION,
@@ -141,11 +142,12 @@ export class TilePopup extends LitElement implements LovelaceCard {
       : undefined;
 
     return html`
-      <ha-card style=${iconColor ? `--tile-color: ${iconColor};` : nothing}>
-        <ha-tile-container
-          .interactive=${true}
-          @click=${this._handleClick}
-        >
+        <ha-card style=${iconColor ? `--tile-color: ${iconColor};` : nothing}>
+          <ha-tile-container
+            .interactive=${true}
+            .actionHandlerOptions=${{}}
+            @action=${this._handleAction}
+          >
           <ha-tile-icon
             slot="icon"
             .icon=${icon || undefined}
@@ -162,7 +164,7 @@ export class TilePopup extends LitElement implements LovelaceCard {
     `;
   }
 
-  private _handleClick = async () => {
+  private _handleAction = async (_ev: ActionHandlerEvent) => {
     if (!this._config?.cards?.length || !this.hass) {
       return;
     }
@@ -178,7 +180,11 @@ export class TilePopup extends LitElement implements LovelaceCard {
     dialog.anchor = this;
     dialog.width = this._config.width;
 
-    dialog.addEventListener("closed", () => {
+    dialog.addEventListener("closed", (ev) => {
+      if (ev.target !== dialog) {
+        return;
+      }
+
       dialog.remove();
       this._dialogEl = undefined;
     });
