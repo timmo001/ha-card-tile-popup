@@ -49,12 +49,15 @@ export class TilePopupDialog extends LitElement {
     };
     mql.addEventListener("change", handler);
     this._unsubMediaQuery = () => mql.removeEventListener("change", handler);
+
+    this.addEventListener("hass-more-info", this._forwardEvent);
   }
 
   disconnectedCallback() {
     this._cancelScheduledPopoverOpen();
     this._unsubMediaQuery?.();
     this._unsubMediaQuery = undefined;
+    this.removeEventListener("hass-more-info", this._forwardEvent);
     super.disconnectedCallback();
   }
 
@@ -195,6 +198,20 @@ export class TilePopupDialog extends LitElement {
     this._popoverOpen = false;
     this.dispatchEvent(new CustomEvent("closed"));
   }
+
+  private _forwardEvent = (ev: Event) => {
+    ev.stopPropagation();
+    const ha = document.querySelector("home-assistant");
+    if (ha) {
+      ha.dispatchEvent(
+        new CustomEvent(ev.type, {
+          bubbles: true,
+          composed: true,
+          detail: (ev as CustomEvent).detail,
+        })
+      );
+    }
+  };
 
   static styles = css`
     ha-bottom-sheet {
