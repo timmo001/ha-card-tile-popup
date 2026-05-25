@@ -168,6 +168,7 @@ export class TilePopupDialog extends LitElement {
       aria-modal="true"
       aria-label=${popupLabel}
       @wa-show=${this._handlePopoverShow}
+      @wa-hide=${this._handlePopoverHide}
       @wa-after-hide=${this._handlePopoverAfterHide}
     >
       <div class="popover-surface">${content}</div>
@@ -177,6 +178,20 @@ export class TilePopupDialog extends LitElement {
   private _handlePopoverShow(ev: Event) {
     if (ev.eventPhase === Event.AT_TARGET) {
       this._open = true;
+    }
+  }
+
+  private _handlePopoverHide(ev: Event) {
+    if (ev.eventPhase !== Event.AT_TARGET) {
+      return;
+    }
+    // Prevent the popover from closing if a more-info dialog is actively open
+    const ha = document.querySelector("home-assistant");
+    const moreInfoDialog = ha?.shadowRoot?.querySelector(
+      "ha-more-info-dialog"
+    );
+    if (moreInfoDialog?.shadowRoot?.children.length) {
+      ev.preventDefault();
     }
   }
 
