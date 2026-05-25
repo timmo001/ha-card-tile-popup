@@ -40,6 +40,8 @@ export class TilePopupDialog extends LitElement {
 
   private _openPopoverAnimationFrame?: number;
 
+  private _locationPath?: string;
+
   connectedCallback() {
     super.connectedCallback();
     const mql = window.matchMedia(NARROW_MEDIA_QUERY);
@@ -51,6 +53,10 @@ export class TilePopupDialog extends LitElement {
     this._unsubMediaQuery = () => mql.removeEventListener("change", handler);
 
     this.addEventListener("hass-more-info", this._forwardEvent);
+    this.addEventListener("location-changed", this._handleNavigate);
+    window.addEventListener("popstate", this._handleNavigate);
+    window.addEventListener("location-changed", this._handleNavigate);
+    this._locationPath = window.location.pathname;
   }
 
   disconnectedCallback() {
@@ -58,6 +64,9 @@ export class TilePopupDialog extends LitElement {
     this._unsubMediaQuery?.();
     this._unsubMediaQuery = undefined;
     this.removeEventListener("hass-more-info", this._forwardEvent);
+    this.removeEventListener("location-changed", this._handleNavigate);
+    window.removeEventListener("popstate", this._handleNavigate);
+    window.removeEventListener("location-changed", this._handleNavigate);
     super.disconnectedCallback();
   }
 
@@ -226,6 +235,30 @@ export class TilePopupDialog extends LitElement {
         })
       );
     }
+  };
+
+  private _handleNavigate = (ev: Event) => {
+    // Only close on actual path changes, not query param updates (e.g. more-info dialog)
+    if (window.location.pathname === this._locationPath) {
+      return;
+    }
+
+    if (ev.type === "location-changed") {
+      ev.stopPropagation();
+      const ha = document.querySelector("home-assistant");
+      if (ha) {
+        ha.dispatchEvent(
+          new CustomEvent(ev.type, {
+            bubbles: true,
+            composed: true,
+            detail: (ev as CustomEvent).detail,
+          })
+        );
+      }
+    }
+    this._open = false;
+    this._popoverOpen = false;
+    this.dispatchEvent(new CustomEvent("closed"));
   };
 
   static styles = css`
