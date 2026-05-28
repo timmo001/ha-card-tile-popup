@@ -1,5 +1,5 @@
 ---
-name: Build
+name: HACS Validate
 
 # yamllint disable-line rule:truthy
 on:
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    uses: timmo001/workflows/.github/workflows/ha-card-build.yml@master
+  validate:
+    uses: timmo001/workflows/.github/workflows/ha-card-validate.yml@master
     with:
       submodules: true
