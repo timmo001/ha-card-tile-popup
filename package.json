@@ -31,7 +31,7 @@
     "@babel/preset-env": "^8.0.0",
     "@material/mwc-ripple": "^0.27.0",
     "@rollup/plugin-babel": "^7.0.0",
-    "eslint": "^9.35.0",
+    "eslint": "^10.0.0",
     "prettier": "^3.6.2",
     "rolldown": "^1.0.0-rc.11",
     "rollup-plugin-serve": "^3.0.0",
