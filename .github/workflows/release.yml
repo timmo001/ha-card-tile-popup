@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   release:
-    uses: timmo001/workflows/.github/workflows/ha-card-release.yml@747787f1187c6bb6dbbfb946e510d725660eb8bd # master
+    uses: timmo001/workflows/.github/workflows/ha-card-release.yml@5d46351dd8a18ea5e9e0ba017da6633758bcdba3 # master
     with:
       submodules: true
     permissions:
