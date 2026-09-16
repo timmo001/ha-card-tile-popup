@@ -171,7 +171,7 @@ importers:
         version: 7.4.47
       home-assistant-js-websocket:
         specifier: ^9.5.0
-        version: 9.6.0
+        version: 9.7.0
       lit:
         specifier: ^3.3.1
         version: 3.3.3
@@ -1329,8 +1329,8 @@ packages:
     resolution: {integrity: sha512-iZyKG96/JwPz1N55vj2Ie2vXbhu440zfUfJvSwEqEbeLluk7NnapfGqa7LH0mOsnDxTF85Mx8/dyR6HfqcbmbQ==}
     engines: {node: '>=20'}
 
-  home-assistant-js-websocket@9.6.0:
-    resolution: {integrity: sha512-TK8HWW6UjCsUdjIBQRB2sBbEya0VniOBFqFjgqSznJiB7YriNgN8jghyThxOkgxwrnt2eN6oWoZMCTSp1o7H+w==}
+  home-assistant-js-websocket@9.7.0:
+    resolution: {integrity: sha512-AE/VtwY+sKi7B3934KuIgvj2g06QY9aFVdd2zh1r5ygbpMo2TZbvN9Zoma8L2wHNYFsngTRiZxYOnLlCysIOzA==}
 
   hookified@1.15.1:
     resolution: {integrity: sha512-MvG/clsADq1GPM2KGo2nyfaWVyn9naPiXrqIe4jYjXNZQt238kWyOGrsyc/DmRAQ+Re6yeo6yX/yoNCG5KAEVg==}
@@ -2735,7 +2735,7 @@ snapshots:
     dependencies:
       hookified: 1.15.1
 
-  home-assistant-js-websocket@9.6.0: {}
+  home-assistant-js-websocket@9.7.0: {}
 
   hookified@1.15.1: {}
 
