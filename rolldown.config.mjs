@@ -9,9 +9,7 @@ import ignore from "./rollup-plugins/rollup-ignore-plugin.mjs";
 
 const require = createRequire(import.meta.url);
 
-const IGNORED_FILES = [
-  "@material/mwc-ripple/mwc-ripple.js",
-];
+const IGNORED_FILES = ["@material/mwc-ripple/mwc-ripple.js"];
 
 const serveOptions = {
   contentBase: ["./dist"],
@@ -73,6 +71,7 @@ export default defineConfig(({ watch }) => {
         "node_modules/@formatjs/intl-utils/lib/src/diff.js",
         "node_modules/@formatjs/intl-utils/lib/src/resolve-locale.js",
       ];
+
       if (thisAsWindowForModules.some((id_) => id.trimRight().endsWith(id_))) {
         return "window";
       }

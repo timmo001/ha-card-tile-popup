@@ -15,6 +15,7 @@ import { CARD_EDITOR_NAME } from "./const";
 import "./tile-popup-card-picker";
 import {
   getTilePopupSectionWidthCount,
+  isSectionCount,
   type TilePopupConfig,
   tilePopupConfigStruct,
 } from "./tile-popup-config";
@@ -29,14 +30,16 @@ interface LovelaceConfig {
 
 interface LovelaceCardConfig {
   type: string;
-  [key: string]: unknown;
 }
+
+type SelectorValue =
+  string | number | boolean | { [key: string]: SelectorValue };
 
 type HaFormSchema = {
   name: string;
   type?: "grid";
   schema?: readonly HaFormSchema[];
-  selector?: Record<string, unknown>;
+  selector?: Record<string, SelectorValue>;
 };
 
 type HaFormValueChangedEvent = CustomEvent<{
@@ -67,9 +70,10 @@ type RuntimeCardEditor = HTMLElement & {
 };
 
 const CLIPBOARD_KEY = "dashboardCardClipboard";
+
 const SECTION_WIDTH_MIN = 1;
+
 const SECTION_WIDTH_MAX = 10;
-const SECTION_WIDTH_DEFAULT = 1;
 
 const CARD_WIDTH_SCHEMA: readonly HaFormSchema[] = [
   {
@@ -148,7 +152,10 @@ const computeHelper = (schema: HaFormSchema): string | undefined => {
   }
 };
 
-const emitConfigChanged = (target: HTMLElement, config: TilePopupConfig): void => {
+const emitConfigChanged = (
+  target: HTMLElement,
+  config: TilePopupConfig
+): void => {
   target.dispatchEvent(
     new CustomEvent("config-changed", {
       detail: { config },
@@ -166,7 +173,7 @@ const readClipboard = (): LovelaceCardConfig | undefined => {
   }
 
   try {
-    return JSON.parse(value) as LovelaceCardConfig;
+    return JSON.parse(value);
   } catch {
     return undefined;
   }
@@ -177,10 +184,10 @@ const writeClipboard = (config: LovelaceCardConfig): void => {
 };
 
 const cloneCardConfig = (config: LovelaceCardConfig): LovelaceCardConfig =>
-  JSON.parse(JSON.stringify(config)) as LovelaceCardConfig;
+  JSON.parse(JSON.stringify(config));
 
 @customElement(CARD_EDITOR_NAME)
-class TilePopupEditor extends LitElement {
+export class TilePopupEditor extends LitElement {
   @property({ attribute: false }) public hass?: HomeAssistant;
 
   @property({ attribute: false }) public lovelace?: LovelaceConfig;
@@ -261,66 +268,68 @@ class TilePopupEditor extends LitElement {
         </div>
 
         <div id="editor">
-          ${selected < cards.length
-            ? html`
-                <div id="card-options">
-                  <ha-icon-button
-                    class="gui-mode-button"
-                    .disabled=${!this._guiModeAvailable}
-                    .label=${isGuiMode
-                      ? "Show code editor"
-                      : "Show visual editor"}
-                    .path=${isGuiMode ? mdiCodeBraces : mdiListBoxOutline}
-                    @click=${this._toggleMode}
-                  ></ha-icon-button>
-                  <ha-icon-button-arrow-prev
-                    .disabled=${selected === 0}
-                    .label=${"Move before"}
-                    .move=${-1}
-                    @click=${this._handleMove}
-                  ></ha-icon-button-arrow-prev>
-                  <ha-icon-button-arrow-next
-                    .disabled=${selected === cards.length - 1}
-                    .label=${"Move after"}
-                    .move=${1}
-                    @click=${this._handleMove}
-                  ></ha-icon-button-arrow-next>
-                  <ha-icon-button
-                    .label=${"Copy"}
-                    .path=${mdiContentCopy}
-                    @click=${this._handleCopyCard}
-                  ></ha-icon-button>
-                  <ha-icon-button
-                    .label=${"Cut"}
-                    .path=${mdiContentCut}
-                    @click=${this._handleCutCard}
-                  ></ha-icon-button>
-                  <ha-icon-button
-                    .label=${"Delete"}
-                    .path=${mdiDelete}
-                    @click=${this._handleDeleteCard}
-                  ></ha-icon-button>
-                </div>
-                ${keyed(
-                  this._getKey(cards, selected),
-                  html`
-                    <hui-card-element-editor
-                      .hass=${this.hass}
-                      .value=${cards[selected]}
-                      .lovelace=${this.lovelace}
-                      @config-changed=${this._handleConfigChanged}
-                      @GUImode-changed=${this._handleGUIModeChanged}
-                    ></hui-card-element-editor>
-                  `
-                )}
-              `
-            : html`
-                <tile-popup-card-picker
-                  .hass=${this.hass}
-                  .suggestedCards=${clipboard ? [clipboard.type] : undefined}
-                  @config-changed=${this._handleCardPicked}
-                ></tile-popup-card-picker>
-              `}
+          ${
+            selected < cards.length
+              ? html`
+                  <div id="card-options">
+                    <ha-icon-button
+                      class="gui-mode-button"
+                      .disabled=${!this._guiModeAvailable}
+                      .label=${
+                        isGuiMode ? "Show code editor" : "Show visual editor"
+                      }
+                      .path=${isGuiMode ? mdiCodeBraces : mdiListBoxOutline}
+                      @click=${this._toggleMode}
+                    ></ha-icon-button>
+                    <ha-icon-button-arrow-prev
+                      .disabled=${selected === 0}
+                      .label=${"Move before"}
+                      .move=${-1}
+                      @click=${this._handleMove}
+                    ></ha-icon-button-arrow-prev>
+                    <ha-icon-button-arrow-next
+                      .disabled=${selected === cards.length - 1}
+                      .label=${"Move after"}
+                      .move=${1}
+                      @click=${this._handleMove}
+                    ></ha-icon-button-arrow-next>
+                    <ha-icon-button
+                      .label=${"Copy"}
+                      .path=${mdiContentCopy}
+                      @click=${this._handleCopyCard}
+                    ></ha-icon-button>
+                    <ha-icon-button
+                      .label=${"Cut"}
+                      .path=${mdiContentCut}
+                      @click=${this._handleCutCard}
+                    ></ha-icon-button>
+                    <ha-icon-button
+                      .label=${"Delete"}
+                      .path=${mdiDelete}
+                      @click=${this._handleDeleteCard}
+                    ></ha-icon-button>
+                  </div>
+                  ${keyed(
+                    this._getKey(cards, selected),
+                    html`
+                      <hui-card-element-editor
+                        .hass=${this.hass}
+                        .value=${cards[selected]}
+                        .lovelace=${this.lovelace}
+                        @config-changed=${this._handleConfigChanged}
+                        @GUImode-changed=${this._handleGUIModeChanged}
+                      ></hui-card-element-editor>
+                    `
+                  )}
+                `
+              : html`
+                  <tile-popup-card-picker
+                    .hass=${this.hass}
+                    .suggestedCards=${clipboard ? [clipboard.type] : undefined}
+                    @config-changed=${this._handleCardPicked}
+                  ></tile-popup-card-picker>
+                `
+          }
         </div>
       </div>
     `;
@@ -336,7 +345,7 @@ class TilePopupEditor extends LitElement {
     return this._keys.get(key)!;
   }
 
-  private _handleValueChanged(ev: HaFormValueChangedEvent): void {
+  private _handleValueChanged = (ev: HaFormValueChangedEvent): void => {
     if (!this._config) {
       return;
     }
@@ -349,16 +358,16 @@ class TilePopupEditor extends LitElement {
 
     this._config = config;
     emitConfigChanged(this, config);
-  }
+  };
 
-  private _handleWidthValueChanged(ev: HaFormValueChangedEvent): void {
+  private _handleWidthValueChanged = (ev: HaFormValueChangedEvent): void => {
     if (!this._config) {
       return;
     }
 
     const width = ev.detail.value.width;
 
-    if (typeof width !== "number") {
+    if (!isSectionCount(width)) {
       return;
     }
 
@@ -369,23 +378,23 @@ class TilePopupEditor extends LitElement {
 
     this._config = config;
     emitConfigChanged(this, config);
-  }
+  };
 
-  private _handleAddCard(): void {
+  private _handleAddCard = (): void => {
     if (!this._config) {
       return;
     }
 
     this._selectedCard = this._config.cards.length;
-  }
+  };
 
-  private _handleSelectedCard(ev: TabChangedEvent): void {
+  private _handleSelectedCard = (ev: TabChangedEvent): void => {
     this._guiMode = true;
     this._guiModeAvailable = true;
     this._selectedCard = Number(ev.detail.name);
-  }
+  };
 
-  private _handleConfigChanged(ev: ConfigChangedEvent): void {
+  private _handleConfigChanged = (ev: ConfigChangedEvent): void => {
     ev.stopPropagation();
 
     if (!this._config) {
@@ -403,9 +412,9 @@ class TilePopupEditor extends LitElement {
     this._config = config;
     this._guiModeAvailable = ev.detail.guiModeAvailable ?? true;
     emitConfigChanged(this, config);
-  }
+  };
 
-  private _handleCardPicked(ev: ConfigChangedEvent): void {
+  private _handleCardPicked = (ev: ConfigChangedEvent): void => {
     ev.stopPropagation();
 
     if (!this._config) {
@@ -421,22 +430,22 @@ class TilePopupEditor extends LitElement {
     this._selectedCard = config.cards.length - 1;
     this._keys.clear();
     emitConfigChanged(this, config);
-  }
+  };
 
-  private _handleCopyCard(): void {
+  private _handleCopyCard = (): void => {
     if (!this._config) {
       return;
     }
 
     writeClipboard(cloneCardConfig(this._config.cards[this._selectedCard]));
-  }
+  };
 
-  private _handleCutCard(): void {
+  private _handleCutCard = (): void => {
     this._handleCopyCard();
     this._handleDeleteCard();
-  }
+  };
 
-  private _handleDeleteCard(): void {
+  private _handleDeleteCard = (): void => {
     if (!this._config) {
       return;
     }
@@ -450,17 +459,20 @@ class TilePopupEditor extends LitElement {
     };
 
     this._config = config;
-    this._selectedCard = Math.min(this._selectedCard, Math.max(cards.length - 1, 0));
+    this._selectedCard = Math.min(
+      this._selectedCard,
+      Math.max(cards.length - 1, 0)
+    );
     this._keys.clear();
     emitConfigChanged(this, config);
-  }
+  };
 
-  private _handleMove(ev: Event): void {
+  private _handleMove = (ev: Event & { currentTarget: MoveButton }): void => {
     if (!this._config) {
       return;
     }
 
-    const move = (ev.currentTarget as MoveButton).move;
+    const move = ev.currentTarget.move;
     const source = this._selectedCard;
     const target = source + move;
 
@@ -481,17 +493,17 @@ class TilePopupEditor extends LitElement {
     this._selectedCard = target;
     this._keys.clear();
     emitConfigChanged(this, config);
-  }
+  };
 
-  private _handleGUIModeChanged(ev: GUIModeChangedEvent): void {
+  private _handleGUIModeChanged = (ev: GUIModeChangedEvent): void => {
     ev.stopPropagation();
     this._guiMode = ev.detail.guiMode;
     this._guiModeAvailable = ev.detail.guiModeAvailable;
-  }
+  };
 
-  private _toggleMode(): void {
+  private _toggleMode = (): void => {
     this._cardEditorEl?.toggleMode();
-  }
+  };
 
   static get styles(): CSSResultGroup {
     return css`

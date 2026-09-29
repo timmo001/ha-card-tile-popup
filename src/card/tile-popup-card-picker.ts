@@ -1,16 +1,18 @@
 import type { CSSResultGroup } from "lit";
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { coreCards, energyCards } from "../../vendor/home-assistant-frontend/src/panels/lovelace/editor/lovelace-cards";
+import {
+  coreCards,
+  energyCards,
+} from "../../vendor/home-assistant-frontend/src/panels/lovelace/editor/lovelace-cards";
 
 interface HomeAssistant {
   language?: string;
-  localize(key: string, vars?: Record<string, unknown>): string;
+  localize(key: string): string;
 }
 
 interface LovelaceCardConfig {
   type: string;
-  [key: string]: unknown;
 }
 
 type CustomCardRegistration = {
@@ -48,7 +50,7 @@ const readClipboard = (): LovelaceCardConfig | undefined => {
   }
 
   try {
-    return JSON.parse(value) as LovelaceCardConfig;
+    return JSON.parse(value);
   } catch {
     return undefined;
   }
@@ -70,9 +72,11 @@ export class TilePopupCardPicker extends LitElement {
     const cards = this._cards();
     const filteredCards = this._filterCards(cards);
     const suggested = filteredCards.filter((card) => card.isSuggested);
+
     const core = filteredCards.filter(
       (card) => !card.isSuggested && !card.isCustom && !card.isEnergy
     );
+
     const energy = filteredCards.filter((card) => card.isEnergy);
     const custom = filteredCards.filter((card) => card.isCustom);
     const clipboard = readClipboard();
@@ -87,68 +91,84 @@ export class TilePopupCardPicker extends LitElement {
         @input=${this._handleSearchChange}
       ></ha-input-search>
       <div id="content">
-        ${this._filter
-          ? html`<div class="cards-container">${filteredCards.map((card) => this._renderCard(card))}</div>`
-          : html`
-              ${suggested.length
-                ? html`
-                    <ha-expansion-panel expanded>
-                      <div slot="header" class="cards-container-header">
-                        ${this.hass.localize(
-                          "ui.panel.lovelace.editor.card.generic.suggested_cards"
-                        )}
-                      </div>
-                      <div class="cards-container">
-                        ${clipboard ? this._renderClipboardCard(clipboard) : nothing}
-                        ${suggested.map((card) => this._renderCard(card))}
-                      </div>
-                    </ha-expansion-panel>
-                  `
-                : nothing}
-              <ha-expansion-panel expanded>
-                <div slot="header" class="cards-container-header">
-                  ${this.hass.localize(
-                    "ui.panel.lovelace.editor.card.generic.core_cards"
-                  )}
-                </div>
-                <div class="cards-container">
-                  ${!suggested.length && clipboard
-                    ? this._renderClipboardCard(clipboard)
-                    : nothing}
-                  ${core.map((card) => this._renderCard(card))}
-                </div>
-              </ha-expansion-panel>
-              ${energy.length
-                ? html`
-                    <ha-expansion-panel>
-                      <div slot="header" class="cards-container-header">
-                        ${this.hass.localize(
-                          "ui.panel.lovelace.editor.card.generic.energy_cards"
-                        )}
-                      </div>
-                      <div class="cards-container">
-                        ${energy.map((card) => this._renderCard(card))}
-                      </div>
-                    </ha-expansion-panel>
-                  `
-                : nothing}
-              ${custom.length
-                ? html`
-                    <ha-expansion-panel expanded>
-                      <div slot="header" class="cards-container-header">
-                        ${this.hass.localize(
-                          "ui.panel.lovelace.editor.card.generic.custom_cards"
-                        )}
-                      </div>
-                      <div class="cards-container">
-                        ${custom.map((card) => this._renderCard(card))}
-                      </div>
-                    </ha-expansion-panel>
-                  `
-                : nothing}
-            `}
+        ${
+          this._filter
+            ? html`<div class="cards-container">
+                ${filteredCards.map((card) => this._renderCard(card))}
+              </div>`
+            : html`
+                ${
+                  suggested.length
+                    ? html`
+                        <ha-expansion-panel expanded>
+                          <div slot="header" class="cards-container-header">
+                            ${this.hass.localize(
+                              "ui.panel.lovelace.editor.card.generic.suggested_cards"
+                            )}
+                          </div>
+                          <div class="cards-container">
+                            ${clipboard ? this._renderClipboardCard(clipboard) : nothing}
+                            ${suggested.map((card) => this._renderCard(card))}
+                          </div>
+                        </ha-expansion-panel>
+                      `
+                    : nothing
+                }
+                <ha-expansion-panel expanded>
+                  <div slot="header" class="cards-container-header">
+                    ${this.hass.localize(
+                      "ui.panel.lovelace.editor.card.generic.core_cards"
+                    )}
+                  </div>
+                  <div class="cards-container">
+                    ${
+                      !suggested.length && clipboard
+                        ? this._renderClipboardCard(clipboard)
+                        : nothing
+                    }
+                    ${core.map((card) => this._renderCard(card))}
+                  </div>
+                </ha-expansion-panel>
+                ${
+                  energy.length
+                    ? html`
+                        <ha-expansion-panel>
+                          <div slot="header" class="cards-container-header">
+                            ${this.hass.localize(
+                              "ui.panel.lovelace.editor.card.generic.energy_cards"
+                            )}
+                          </div>
+                          <div class="cards-container">
+                            ${energy.map((card) => this._renderCard(card))}
+                          </div>
+                        </ha-expansion-panel>
+                      `
+                    : nothing
+                }
+                ${
+                  custom.length
+                    ? html`
+                        <ha-expansion-panel expanded>
+                          <div slot="header" class="cards-container-header">
+                            ${this.hass.localize(
+                              "ui.panel.lovelace.editor.card.generic.custom_cards"
+                            )}
+                          </div>
+                          <div class="cards-container">
+                            ${custom.map((card) => this._renderCard(card))}
+                          </div>
+                        </ha-expansion-panel>
+                      `
+                    : nothing
+                }
+              `
+        }
         <div class="cards-container manual-container">
-          <button class="card manual" type="button" @click=${this._pickManualCard}>
+          <button
+            class="card manual"
+            type="button"
+            @click=${this._pickManualCard}
+          >
             <div class="card-header">
               ${this.hass.localize("ui.panel.lovelace.editor.card.generic.manual")}
             </div>
@@ -165,8 +185,12 @@ export class TilePopupCardPicker extends LitElement {
 
   private _cards(): PickerCard[] {
     const suggested = new Set(this.suggestedCards);
+
     const localized = (type: string) => {
-      const name = this.hass?.localize(`ui.panel.lovelace.editor.card.${type}.name`);
+      const name = this.hass?.localize(
+        `ui.panel.lovelace.editor.card.${type}.name`
+      );
+
       const description = this.hass?.localize(
         `ui.panel.lovelace.editor.card.${type}.description`
       );
@@ -227,7 +251,11 @@ export class TilePopupCardPicker extends LitElement {
 
   private _renderCard(card: PickerCard) {
     return html`
-      <button class="card" type="button" @click=${() => this._pickCard({ type: card.type })}>
+      <button
+        class="card"
+        type="button"
+        @click=${() => this._pickCard({ type: card.type })}
+      >
         <div class="card-header">${card.name}</div>
         <div class="description">${card.description}</div>
       </button>
@@ -236,7 +264,11 @@ export class TilePopupCardPicker extends LitElement {
 
   private _renderClipboardCard(clipboard: LovelaceCardConfig) {
     return html`
-      <button class="card" type="button" @click=${() => this._pickCard(clipboard)}>
+      <button
+        class="card"
+        type="button"
+        @click=${() => this._pickCard(clipboard)}
+      >
         <div class="card-header">
           ${this.hass?.localize("ui.panel.lovelace.editor.card.generic.paste") || "Paste"}
         </div>
@@ -245,13 +277,15 @@ export class TilePopupCardPicker extends LitElement {
     `;
   }
 
-  private _handleSearchChange(ev: Event): void {
-    this._filter = (ev.currentTarget as HTMLInputElement).value || "";
-  }
+  private _handleSearchChange = (
+    ev: Event & { currentTarget: HTMLInputElement }
+  ): void => {
+    this._filter = ev.currentTarget.value || "";
+  };
 
-  private _pickManualCard(): void {
+  private _pickManualCard = (): void => {
     this._pickCard({ type: "" });
-  }
+  };
 
   private _pickCard(config: LovelaceCardConfig): void {
     this.dispatchEvent(

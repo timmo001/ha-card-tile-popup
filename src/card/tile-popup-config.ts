@@ -13,7 +13,6 @@ import {
 
 interface LovelaceCardConfig {
   type: string;
-  [key: string]: unknown;
 }
 
 const baseLovelaceCardConfig = object({
@@ -35,16 +34,22 @@ export interface TilePopupConfig extends LovelaceCardConfig {
 }
 
 const widthStruct = union([
-  refine(number(), "width_sections", (value) =>
-    Number.isInteger(value) && value >= 1 && value <= 10
+  refine(
+    number(),
+    "width_sections",
+    (value) => Number.isInteger(value) && value >= 1 && value <= 10
   ),
   pattern(string(), /^\d+(?:\.\d+)?px$/),
 ]);
 
+export const isSectionCount = (
+  value: TilePopupConfig["width"]
+): value is number => Number.isFinite(value);
+
 export const computeTilePopupPopoverWidth = (
   value: TilePopupConfig["width"]
 ): string | undefined => {
-  if (typeof value === "number") {
+  if (isSectionCount(value)) {
     return `calc(${value} * var(--ha-view-sections-column-max-width, 500px) + ${Math.max(
       value - 1,
       0
@@ -61,7 +66,7 @@ export const computeTilePopupPopoverWidth = (
 export const getTilePopupSectionWidthCount = (
   value: TilePopupConfig["width"]
 ): number => {
-  if (typeof value === "number") {
+  if (isSectionCount(value)) {
     return value;
   }
 

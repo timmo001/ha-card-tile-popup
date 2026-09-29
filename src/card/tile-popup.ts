@@ -5,13 +5,11 @@ import { customElement, property, state } from "lit/decorators.js";
 import { assert } from "superstruct";
 import type { ActionHandlerEvent } from "../../vendor/home-assistant-frontend/src/data/lovelace/action_handler";
 import { computeCssColor } from "../../vendor/home-assistant-frontend/src/common/color/compute-color";
+import { CARD_DESCRIPTION, CARD_NAME, CARD_NAME_FRIENDLY } from "./const";
 import {
-  CARD_DESCRIPTION,
-  CARD_EDITOR_NAME,
-  CARD_NAME,
-  CARD_NAME_FRIENDLY,
-} from "./const";
-import { type TilePopupConfig, tilePopupConfigStruct } from "./tile-popup-config";
+  type TilePopupConfig,
+  tilePopupConfigStruct,
+} from "./tile-popup-config";
 import type { TilePopupDialog } from "./tile-popup-dialog";
 
 interface HomeAssistant {
@@ -22,7 +20,6 @@ interface HomeAssistant {
 
 interface LovelaceCardConfig {
   type: string;
-  [key: string]: unknown;
 }
 
 interface LovelaceCardEditor extends HTMLElement {
@@ -78,9 +75,12 @@ if (!customCards.some((card) => card.type === CARD_NAME)) {
 @customElement(CARD_NAME)
 export class TilePopup extends LitElement implements LovelaceCard {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    const { ensureTilePopupEditor } = await import("./tile-popup-editor");
+    const { TilePopupEditor, ensureTilePopupEditor } =
+      await import("./tile-popup-editor");
+
     await ensureTilePopupEditor();
-    return document.createElement(CARD_EDITOR_NAME) as LovelaceCardEditor;
+
+    return new TilePopupEditor();
   }
 
   public static getStubConfig(): TilePopupConfig {
@@ -99,12 +99,17 @@ export class TilePopup extends LitElement implements LovelaceCard {
 
   protected override updated(changedProps: PropertyValues<this>): void {
     super.updated(changedProps);
+
     if (!changedProps.has("hass") || !this.hass) {
       return;
     }
 
-    const previousHass = changedProps.get("hass") as HomeAssistant | undefined;
-    const previousDarkMode = previousHass ? Boolean(previousHass.themes.darkMode) : false;
+    const previousHass: HomeAssistant | undefined = changedProps.get("hass");
+
+    const previousDarkMode = previousHass
+      ? Boolean(previousHass.themes.darkMode)
+      : false;
+
     const currentDarkMode = Boolean(this.hass.themes.darkMode);
 
     if (previousDarkMode !== currentDarkMode) {
@@ -137,17 +142,18 @@ export class TilePopup extends LitElement implements LovelaceCard {
 
     const label = this._config.label || CARD_NAME_FRIENDLY;
     const icon = this._config.icon;
+
     const iconColor = this._config.icon_color
       ? computeCssColor(this._config.icon_color)
       : undefined;
 
     return html`
-        <ha-card style=${iconColor ? `--tile-color: ${iconColor};` : nothing}>
-          <ha-tile-container
-            .interactive=${true}
-            .actionHandlerOptions=${{}}
-            @action=${this._handleAction}
-          >
+      <ha-card style=${iconColor ? `--tile-color: ${iconColor};` : nothing}>
+        <ha-tile-container
+          .interactive=${true}
+          .actionHandlerOptions=${{}}
+          @action=${this._handleAction}
+        >
           <ha-tile-icon
             slot="icon"
             .icon=${icon || undefined}
@@ -155,9 +161,11 @@ export class TilePopup extends LitElement implements LovelaceCard {
           ></ha-tile-icon>
           <ha-tile-info slot="info">
             <span slot="primary">${label}</span>
-            ${this._config.secondary
-              ? html`<span slot="secondary">${this._config.secondary}</span>`
-              : nothing}
+            ${
+              this._config.secondary
+                ? html`<span slot="secondary">${this._config.secondary}</span>`
+                : nothing
+            }
           </ha-tile-info>
         </ha-tile-container>
       </ha-card>

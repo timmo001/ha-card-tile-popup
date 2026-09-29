@@ -5,13 +5,10 @@ import {
   type TilePopupConfig,
 } from "./tile-popup-config";
 
-interface HomeAssistant {
-  [key: string]: unknown;
-}
+type HomeAssistant = object;
 
 interface LovelaceCardConfig {
   type: string;
-  [key: string]: unknown;
 }
 
 const NARROW_MEDIA_QUERY = "(max-width: 870px), all and (max-height: 870px)";
@@ -46,9 +43,11 @@ export class TilePopupDialog extends LitElement {
     super.connectedCallback();
     const mql = window.matchMedia(NARROW_MEDIA_QUERY);
     this._narrow = mql.matches;
+
     const handler = (ev: MediaQueryListEvent) => {
       this._narrow = ev.matches;
     };
+
     mql.addEventListener("change", handler);
     this._unsubMediaQuery = () => mql.removeEventListener("change", handler);
 
@@ -91,6 +90,7 @@ export class TilePopupDialog extends LitElement {
     if (this._presentationMode !== "popover") {
       this._cancelScheduledPopoverOpen();
       this._popoverOpen = false;
+
       return;
     }
 
@@ -99,6 +99,7 @@ export class TilePopupDialog extends LitElement {
     if (!this._open) {
       this._cancelScheduledPopoverOpen();
       this._popoverOpen = false;
+
       return;
     }
 
@@ -128,7 +129,9 @@ export class TilePopupDialog extends LitElement {
   private _syncPopoverAnchor() {
     const popover =
       this.renderRoot.querySelector<WaPopoverElement>("wa-popover");
+
     const anchor = this.anchor ?? null;
+
     if (popover && popover.anchor !== anchor) {
       popover.anchor = anchor;
     }
@@ -184,36 +187,28 @@ export class TilePopupDialog extends LitElement {
     </wa-popover>`;
   }
 
-  private _handlePopoverShow(ev: Event) {
+  private _handlePopoverShow = (ev: Event) => {
     if (ev.eventPhase === Event.AT_TARGET) {
       this._open = true;
     }
-  }
+  };
 
-  private _handlePopoverHide(ev: Event) {
+  private _handlePopoverHide = (ev: Event) => {
     if (ev.eventPhase !== Event.AT_TARGET) {
       return;
     }
+
     // Prevent the popover from closing if a more-info dialog is actively open
     const ha = document.querySelector("home-assistant");
-    const moreInfoDialog = ha?.shadowRoot?.querySelector(
-      "ha-more-info-dialog"
-    );
+
+    const moreInfoDialog = ha?.shadowRoot?.querySelector("ha-more-info-dialog");
+
     if (moreInfoDialog?.shadowRoot?.children.length) {
       ev.preventDefault();
     }
-  }
+  };
 
-  private _handlePopoverAfterHide(ev: Event) {
-    if (ev.eventPhase !== Event.AT_TARGET) {
-      return;
-    }
-    this._open = false;
-    this._popoverOpen = false;
-    this.dispatchEvent(new CustomEvent("closed"));
-  }
-
-  private _handleBottomSheetClosed(ev: Event) {
+  private _handlePopoverAfterHide = (ev: Event) => {
     if (ev.eventPhase !== Event.AT_TARGET) {
       return;
     }
@@ -221,17 +216,28 @@ export class TilePopupDialog extends LitElement {
     this._open = false;
     this._popoverOpen = false;
     this.dispatchEvent(new CustomEvent("closed"));
-  }
+  };
+
+  private _handleBottomSheetClosed = (ev: Event) => {
+    if (ev.eventPhase !== Event.AT_TARGET) {
+      return;
+    }
+
+    this._open = false;
+    this._popoverOpen = false;
+    this.dispatchEvent(new CustomEvent("closed"));
+  };
 
   private _forwardEvent = (ev: Event) => {
     ev.stopPropagation();
     const ha = document.querySelector("home-assistant");
+
     if (ha) {
       ha.dispatchEvent(
         new CustomEvent(ev.type, {
           bubbles: true,
           composed: true,
-          detail: (ev as CustomEvent).detail,
+          detail: ev instanceof CustomEvent ? ev.detail : undefined,
         })
       );
     }
@@ -246,16 +252,18 @@ export class TilePopupDialog extends LitElement {
     if (ev.type === "location-changed") {
       ev.stopPropagation();
       const ha = document.querySelector("home-assistant");
+
       if (ha) {
         ha.dispatchEvent(
           new CustomEvent(ev.type, {
             bubbles: true,
             composed: true,
-            detail: (ev as CustomEvent).detail,
+            detail: ev instanceof CustomEvent ? ev.detail : undefined,
           })
         );
       }
     }
+
     this._open = false;
     this._popoverOpen = false;
     this.dispatchEvent(new CustomEvent("closed"));
@@ -274,7 +282,10 @@ export class TilePopupDialog extends LitElement {
       --width: min(
         var(
           --tile-popup-width,
-          calc(1 * var(--ha-view-sections-column-max-width, 500px) + 0 * var(--ha-view-sections-column-gap, 32px))
+          calc(
+            1 * var(--ha-view-sections-column-max-width, 500px) + 0 *
+              var(--ha-view-sections-column-gap, 32px)
+          )
         ),
         95vw
       );
