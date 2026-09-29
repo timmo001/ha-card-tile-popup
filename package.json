@@ -7,7 +7,8 @@
     "start": "rolldown -c --watch",
     "build": "rm -f dist/*.js && rolldown -c",
     "format": "prettier --write .",
-    "publish-to-local": "bash ./scripts/publish-to-local.sh"
+    "publish-to-local": "bash ./scripts/publish-to-local.sh",
+    "lint": "oxlint"
   },
   "author": {
     "name": "Aidan Timson",
@@ -30,8 +31,11 @@
     "@babel/core": "^8.0.0",
     "@babel/preset-env": "^8.0.0",
     "@material/mwc-ripple": "^0.27.0",
+    "@oxlint/plugins": "1.86.0",
     "@rollup/plugin-babel": "^7.0.0",
-    "eslint": "^10.0.0",
+    "@timmo001/oxlint-rules": "0.4.0",
+    "oxlint": "1.86.0",
+    "oxlint-tsgolint": "7.0.2003",
     "prettier": "^3.6.2",
     "rolldown": "^1.0.0-rc.11",
     "rollup-plugin-serve": "^3.0.0",
