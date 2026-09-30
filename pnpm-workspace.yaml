@@ -1,2 +1,3 @@
 # Renovate owns the default release delay and package-specific overrides.
 minimumReleaseAge: 0
+savePrefix: ""
