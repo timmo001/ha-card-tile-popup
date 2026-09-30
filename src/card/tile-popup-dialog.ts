@@ -1,5 +1,5 @@
 import { css, html, LitElement, nothing, type PropertyValues } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement, property, query, state } from "lit/decorators.js";
 import {
   computeTilePopupPopoverWidth,
   type TilePopupConfig,
@@ -26,6 +26,8 @@ export class TilePopupDialog extends LitElement {
   @property({ attribute: false }) public anchor?: Element;
 
   @property({ attribute: false }) public width?: TilePopupConfig["width"];
+
+  @query("wa-popover") private _popover?: WaPopoverElement;
 
   @state() private _narrow = false;
 
@@ -127,13 +129,10 @@ export class TilePopupDialog extends LitElement {
   }
 
   private _syncPopoverAnchor() {
-    const popover =
-      this.renderRoot.querySelector<WaPopoverElement>("wa-popover");
-
     const anchor = this.anchor ?? null;
 
-    if (popover && popover.anchor !== anchor) {
-      popover.anchor = anchor;
+    if (this._popover && this._popover.anchor !== anchor) {
+      this._popover.anchor = anchor;
     }
   }
 

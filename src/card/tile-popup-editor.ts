@@ -338,11 +338,14 @@ export class TilePopupEditor extends LitElement {
   private _getKey(cards: LovelaceCardConfig[], index: number): string {
     const key = `${index}-${cards.length}`;
 
-    if (!this._keys.has(key)) {
-      this._keys.set(key, Math.random().toString());
+    let value = this._keys.get(key);
+
+    if (value === undefined) {
+      value = Math.random().toString();
+      this._keys.set(key, value);
     }
 
-    return this._keys.get(key)!;
+    return value;
   }
 
   private _handleValueChanged = (ev: HaFormValueChangedEvent): void => {
