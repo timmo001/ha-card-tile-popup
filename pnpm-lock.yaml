@@ -167,32 +167,32 @@ importers:
   .:
     dependencies:
       '@mdi/js':
-        specifier: ^7.4.47
+        specifier: 7.4.47
         version: 7.4.47
       home-assistant-js-websocket:
-        specifier: ^9.5.0
+        specifier: 9.7.0
         version: 9.7.0
       lit:
-        specifier: ^3.3.1
+        specifier: 3.3.3
         version: 3.3.3
       superstruct:
-        specifier: ^2.0.2
+        specifier: 2.0.2
         version: 2.0.2
     devDependencies:
       '@babel/core':
-        specifier: ^8.0.0
+        specifier: 8.0.6
         version: 8.0.6
       '@babel/preset-env':
-        specifier: ^8.0.0
+        specifier: 8.0.6
         version: 8.0.6(@babel/core@8.0.6)
       '@material/mwc-ripple':
-        specifier: ^0.27.0
+        specifier: 0.27.0
         version: 0.27.0
       '@oxlint/plugins':
         specifier: 1.86.0
         version: 1.86.0
       '@rollup/plugin-babel':
-        specifier: ^7.0.0
+        specifier: 7.1.0
         version: 7.1.0(@babel/core@8.0.6)
       '@timmo001/oxlint-rules':
         specifier: 0.5.0
@@ -204,16 +204,16 @@ importers:
         specifier: 7.0.2003
         version: 7.0.2003
       prettier:
-        specifier: ^3.6.2
+        specifier: 3.9.9
         version: 3.9.9
       rolldown:
-        specifier: ^1.0.0-rc.11
+        specifier: 1.2.11
         version: 1.2.11
       rollup-plugin-serve:
-        specifier: ^3.0.0
+        specifier: 3.0.0
         version: 3.0.0
       typescript:
-        specifier: ^7.0.0
+        specifier: 7.0.2
         version: 7.0.2
 
 packages:
