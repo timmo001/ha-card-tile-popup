@@ -3,3 +3,4 @@ dist
 .hass_dev/*
 package-lock.json
 package.json
+.agents/skills
