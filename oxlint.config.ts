@@ -5,6 +5,7 @@ export default defineConfig({
   extends: [recommended],
   options: {
     typeAware: true,
+    maxWarnings: 0,
   },
   ignorePatterns: ["vendor/**"],
 });
