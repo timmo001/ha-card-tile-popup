@@ -170,8 +170,8 @@ importers:
         specifier: 7.4.47
         version: 7.4.47
       home-assistant-js-websocket:
-        specifier: 9.7.0
-        version: 9.7.0
+        specifier: 9.7.1
+        version: 9.7.1
       lit:
         specifier: 3.3.3
         version: 3.3.3
@@ -1273,8 +1273,8 @@ packages:
     resolution: {integrity: sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==}
     engines: {node: '>=6.9.0'}
 
-  home-assistant-js-websocket@9.7.0:
-    resolution: {integrity: sha512-AE/VtwY+sKi7B3934KuIgvj2g06QY9aFVdd2zh1r5ygbpMo2TZbvN9Zoma8L2wHNYFsngTRiZxYOnLlCysIOzA==}
+  home-assistant-js-websocket@9.7.1:
+    resolution: {integrity: sha512-zOAiyF+gUc/IsiswYdWKns6SCBbvWb8iJtMX9+Dk0wlbdfcp+I38T2Vx36krWeWMk/GPwoSiYwCs5hk/+Hsn7w==}
 
   import-meta-resolve@4.2.0:
     resolution: {integrity: sha512-Iqv2fzaTQN28s/FwZAoFq0ZSs/7hMAHJVX+w8PZl3cY19Pxk6jFFalxQoIfW2826i/fDLXv8IiEZRIT0lDuWcg==}
@@ -2388,7 +2388,7 @@ snapshots:
 
   gensync@1.0.0-beta.2: {}
 
-  home-assistant-js-websocket@9.7.0: {}
+  home-assistant-js-websocket@9.7.1: {}
 
   import-meta-resolve@4.2.0: {}
 

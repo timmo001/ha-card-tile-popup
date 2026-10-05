@@ -23,7 +23,7 @@
   "license": "ISC",
   "dependencies": {
     "@mdi/js": "7.4.47",
-    "home-assistant-js-websocket": "9.7.0",
+    "home-assistant-js-websocket": "9.7.1",
     "lit": "3.3.3",
     "superstruct": "2.0.2"
   },
