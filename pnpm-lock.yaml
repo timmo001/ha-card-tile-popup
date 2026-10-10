@@ -195,8 +195,8 @@ importers:
         specifier: 7.1.0
         version: 7.1.0(@babel/core@8.0.7)
       '@timmo001/oxlint-rules':
-        specifier: 0.5.0
-        version: 0.5.0(@oxlint/plugins@1.87.0)(oxlint@1.87.0(oxlint-tsgolint@7.0.2003))
+        specifier: 0.6.2
+        version: 0.6.2(@oxlint/plugins@1.87.0)(oxlint@1.87.0(oxlint-tsgolint@7.0.2003))
       oxlint:
         specifier: 1.87.0
         version: 1.87.0(oxlint-tsgolint@7.0.2003)
@@ -1085,13 +1085,13 @@ packages:
       rollup:
         optional: true
 
-  '@timmo001/oxlint-rules@0.5.0':
-    resolution: {integrity: sha512-5Tm1duCF2fzPRSwFGTOIDoR4qWXQIUtf0dYWt4ApoRbtJTPrPi4OZjdmhglaE/IoEaDSuUFp2Jx08Emmno/o1g==}
+  '@timmo001/oxlint-rules@0.6.2':
+    resolution: {integrity: sha512-a2pte8DgmqpSVWcjPo21uabKypyfv0TtOdl36oUG+p17MlIs2zT7DiZhn0tnEXjdXna3KFnmzGEHvW0KspVlXA==}
     engines: {node: '>=20'}
     hasBin: true
     peerDependencies:
-      '@oxlint/plugins': 1.86.0
-      oxlint: 1.86.0
+      '@oxlint/plugins': 1.87.0
+      oxlint: 1.87.0
 
   '@types/estree@1.0.9':
     resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
@@ -2316,7 +2316,7 @@ snapshots:
       estree-walker: 2.0.2
       picomatch: 4.0.7
 
-  '@timmo001/oxlint-rules@0.5.0(@oxlint/plugins@1.87.0)(oxlint@1.87.0(oxlint-tsgolint@7.0.2003))':
+  '@timmo001/oxlint-rules@0.6.2(@oxlint/plugins@1.87.0)(oxlint@1.87.0(oxlint-tsgolint@7.0.2003))':
     dependencies:
       '@oxlint/plugins': 1.87.0
       oxlint: 1.87.0(oxlint-tsgolint@7.0.2003)
