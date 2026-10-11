@@ -36,7 +36,7 @@
     "@rollup/plugin-babel": "7.1.0",
     "@timmo001/oxlint-rules": "0.6.2",
     "oxlint": "1.87.0",
-    "oxlint-tsgolint": "7.0.2003",
+    "oxlint-tsgolint": "7.0.2004",
     "prettier": "3.9.10",
     "rolldown": "1.2.13",
     "rollup-plugin-serve": "3.0.0",
