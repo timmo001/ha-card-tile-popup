@@ -38,7 +38,7 @@
     "oxlint": "1.88.0",
     "oxlint-tsgolint": "7.0.2004",
     "prettier": "3.9.10",
-    "rolldown": "1.2.13",
+    "rolldown": "1.2.14",
     "rollup-plugin-serve": "3.0.0",
     "typescript": "7.0.2"
   }
