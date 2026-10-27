@@ -1,0 +1,30 @@
+# Live demo on https://timmo.dev/demos/ha-card-tile-popup, rendered with Home
+# Assistant's embed components against mocked entities. It's read from each
+# release, so it has to match that release's card.
+entities:
+  - entity_id: light.kitchen
+    state: "on"
+    attributes:
+      friendly_name: Kitchen
+      brightness: 200
+      color_mode: brightness
+      supported_color_modes:
+        - brightness
+  - entity_id: light.dining_table
+    state: "off"
+    attributes:
+      friendly_name: Dining table
+      color_mode: brightness
+      supported_color_modes:
+        - brightness
+cards:
+  - type: custom:tile-popup
+    label: Kitchen
+    icon: mdi:silverware-fork-knife
+    cards:
+      - type: tile
+        entity: light.kitchen
+        features:
+          - type: light-brightness
+      - type: tile
+        entity: light.dining_table
