@@ -29,7 +29,7 @@
     "superstruct": "2.0.2"
   },
   "devDependencies": {
-    "@babel/core": "8.0.9",
+    "@babel/core": "8.0.10",
     "@babel/preset-env": "8.0.7",
     "@material/mwc-ripple": "0.27.0",
     "@oxlint/plugins": "1.90.0",
