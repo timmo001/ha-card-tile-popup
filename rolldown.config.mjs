@@ -1,15 +1,9 @@
-import { createRequire } from "node:module";
 import { defineConfig } from "rolldown";
 import {
   getBabelInputPlugin,
   getBabelOutputPlugin,
 } from "@rollup/plugin-babel";
 import serve from "rollup-plugin-serve";
-import ignore from "./rollup-plugins/rollup-ignore-plugin.mjs";
-
-const require = createRequire(import.meta.url);
-
-const IGNORED_FILES = ["@material/mwc-ripple/mwc-ripple.js"];
 
 const serveOptions = {
   contentBase: ["./dist"],
@@ -23,9 +17,6 @@ const serveOptions = {
 
 export default defineConfig(({ watch }) => {
   const plugins = [
-    ignore({
-      files: IGNORED_FILES.map((file) => require.resolve(file)),
-    }),
     getBabelInputPlugin({
       babelHelpers: "bundled",
     }),
