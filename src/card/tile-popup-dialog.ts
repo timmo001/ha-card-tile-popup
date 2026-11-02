@@ -349,7 +349,9 @@ export class TilePopupDialog extends LitElement {
         new CustomEvent(ev.type, {
           bubbles: true,
           composed: true,
-          detail: ev instanceof CustomEvent ? ev.detail : undefined,
+          // Home Assistant's fireEvent dispatches a plain Event with detail
+          // added, not a CustomEvent
+          detail: "detail" in ev ? ev.detail : undefined,
         })
       );
     }
@@ -370,7 +372,7 @@ export class TilePopupDialog extends LitElement {
           new CustomEvent(ev.type, {
             bubbles: true,
             composed: true,
-            detail: ev instanceof CustomEvent ? ev.detail : undefined,
+            detail: "detail" in ev ? ev.detail : undefined,
           })
         );
       }
