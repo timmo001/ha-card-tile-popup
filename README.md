@@ -7,6 +7,7 @@ A custom Home Assistant card that displays a tile which shows a popup containing
 
 <img width="776" height="1108" alt="image" src="https://github.com/user-attachments/assets/65103d00-4980-4a37-98ff-1a711bc48795" />
 
+<!-- ha-marketplace:exclude-start -->
 ## Installation
 
 ### HACS (Recommended)
@@ -26,6 +27,7 @@ Since this card is not yet in the default HACS store, you need to add it as a cu
 1. Download `tile-popup.js` from the latest release
 2. Place it in your `config/www` folder
 3. Add the resource in your Lovelace dashboard
+<!-- ha-marketplace:exclude-end -->
 
 ## Usage
 
