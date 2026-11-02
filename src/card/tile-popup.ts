@@ -95,13 +95,21 @@ export class TilePopup extends LitElement implements LovelaceCard {
 
   @state() private _config?: TilePopupConfig;
 
-  private _dialogEl?: TilePopupDialog;
+  // Rendered in this card's shadow root rather than document.body, so it
+  // inherits the theme of wherever the card is, such as Home Assistant's embed
+  // components, which theme their cards inside their own shadow roots. The
+  // popover and bottom sheet open in the top layer, so the card can't clip them.
+  @state() private _dialogEl?: TilePopupDialog;
 
   protected override updated(changedProps: PropertyValues<this>): void {
     super.updated(changedProps);
 
     if (!changedProps.has("hass") || !this.hass) {
       return;
+    }
+
+    if (this._dialogEl) {
+      this._dialogEl.hass = this.hass;
     }
 
     const previousHass: HomeAssistant | undefined = changedProps.get("hass");
@@ -169,6 +177,7 @@ export class TilePopup extends LitElement implements LovelaceCard {
           </ha-tile-info>
         </ha-tile-container>
       </ha-card>
+      ${this._dialogEl ?? nothing}
     `;
   }
 
@@ -193,12 +202,10 @@ export class TilePopup extends LitElement implements LovelaceCard {
         return;
       }
 
-      dialog.remove();
       this._dialogEl = undefined;
     });
 
     this._dialogEl = dialog;
-    document.body.appendChild(dialog);
   };
 
   static get styles(): CSSResultGroup {

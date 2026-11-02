@@ -1,5 +1,8 @@
 import { css, html, LitElement, nothing, type PropertyValues } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
+import { classMap } from "lit/directives/class-map.js";
+import { styleMap } from "lit/directives/style-map.js";
+import { computeCardGridSize } from "../../vendor/home-assistant-frontend/src/panels/lovelace/common/compute-card-grid-size";
 import {
   computeTilePopupPopoverWidth,
   type TilePopupConfig,
@@ -7,8 +10,34 @@ import {
 
 type HomeAssistant = object;
 
+interface LovelaceGridOptions {
+  columns?: number | "full";
+  rows?: number | "auto";
+  min_columns?: number;
+  max_columns?: number;
+  min_rows?: number;
+  max_rows?: number;
+}
+
 interface LovelaceCardConfig {
   type: string;
+  grid_options?: LovelaceGridOptions;
+}
+
+interface LovelaceCardElement extends HTMLElement {
+  hass?: HomeAssistant;
+  layout?: string;
+  getGridOptions?(): LovelaceGridOptions | undefined;
+}
+
+interface CardHelpers {
+  createCardElement(config: LovelaceCardConfig): LovelaceCardElement;
+}
+
+declare global {
+  interface Window {
+    loadCardHelpers?: () => Promise<CardHelpers>;
+  }
 }
 
 const NARROW_MEDIA_QUERY = "(max-width: 870px), all and (max-height: 870px)";
@@ -34,6 +63,8 @@ export class TilePopupDialog extends LitElement {
   @state() private _open = true;
 
   @state() private _popoverOpen = false;
+
+  @state() private _cardElements: LovelaceCardElement[] = [];
 
   private _unsubMediaQuery?: () => void;
 
@@ -75,7 +106,91 @@ export class TilePopupDialog extends LitElement {
     if (changedProperties.has("cards")) {
       this._open = true;
       this._popoverOpen = false;
+      void this._createCardElements(this.cards);
     }
+
+    if (changedProperties.has("hass")) {
+      for (const element of this._cardElements) {
+        element.hass = this.hass;
+      }
+    }
+  }
+
+  // Built through the public card helpers rather than hui-section, which only
+  // a full dashboard loads. Home Assistant's embed components define the
+  // helpers but not the dashboard's section elements.
+  private async _createCardElements(cards: LovelaceCardConfig[]) {
+    const helpers = await window.loadCardHelpers?.();
+
+    if (!helpers || cards !== this.cards) {
+      return;
+    }
+
+    this._cardElements = cards.map((config, index) =>
+      this._createCardElement(helpers, config, index)
+    );
+  }
+
+  private _createCardElement(
+    helpers: CardHelpers,
+    config: LovelaceCardConfig,
+    index: number
+  ): LovelaceCardElement {
+    const element = helpers.createCardElement(config);
+    element.hass = this.hass;
+    element.layout = "grid";
+
+    // Custom cards that aren't defined yet start as an error card, and fire
+    // ll-rebuild once they are, the same as hui-card handles.
+    element.addEventListener(
+      "ll-rebuild",
+      (ev) => {
+        ev.stopPropagation();
+
+        if (this._cardElements[index] !== element) {
+          return;
+        }
+
+        const rebuilt = this._createCardElement(helpers, config, index);
+        this._cardElements = this._cardElements.map((current, i) =>
+          i === index ? rebuilt : current
+        );
+      },
+      { once: true }
+    );
+
+    element.addEventListener(
+      "ll-upgrade",
+      (ev) => {
+        ev.stopPropagation();
+        element.hass = this.hass;
+        this.requestUpdate();
+      },
+      { once: true }
+    );
+
+    return element;
+  }
+
+  private _renderCard(element: LovelaceCardElement, index: number) {
+    const { columns, rows } = computeCardGridSize({
+      ...element.getGridOptions?.(),
+      ...this.cards[index]?.grid_options,
+    });
+
+    return html`<div
+      class=${classMap({
+        card: true,
+        "fit-rows": rows !== "auto",
+        "full-width": columns === "full",
+      })}
+      style=${styleMap({
+        "--column-size": columns === "full" ? null : String(columns),
+        "--row-size": rows === "auto" ? null : String(rows),
+      })}
+    >
+      ${element}
+    </div>`;
   }
 
   protected override updated(changedProperties: PropertyValues<this>) {
@@ -148,13 +263,11 @@ export class TilePopupDialog extends LitElement {
     const presentationMode = this._presentationMode;
     const popupLabel = "Popup";
 
-    const content = html`<hui-section
-      .hass=${this.hass}
-      .config=${{ cards: this.cards }}
-      .index=${0}
-      .viewIndex=${0}
-      import-only
-    ></hui-section>`;
+    const content = html`<div class="cards">
+      ${this._cardElements.map((element, index) =>
+        this._renderCard(element, index)
+      )}
+    </div>`;
 
     if (presentationMode === "bottom-sheet") {
       return html`<ha-bottom-sheet
@@ -331,10 +444,41 @@ export class TilePopupDialog extends LitElement {
       padding: var(--ha-space-4);
     }
 
-    hui-section {
-      display: block;
+    /* The layout of a sections dashboard's grid section */
+    .cards {
+      --row-gap: var(--ha-section-grid-row-gap, 8px);
+      --column-gap: var(--ha-section-grid-column-gap, 8px);
+      --row-height: var(--ha-section-grid-row-height, 56px);
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      grid-auto-rows: auto;
+      row-gap: var(--row-gap);
+      column-gap: var(--column-gap);
       width: 100%;
-      max-width: 100%;
+    }
+
+    .card {
+      position: relative;
+      grid-row: span var(--row-size, 1);
+      grid-column: span min(var(--column-size, 1), 12);
+      border-radius: var(--ha-card-border-radius, var(--ha-border-radius-lg));
+    }
+
+    .card.fit-rows {
+      height: calc(
+        (var(--row-size, 1) * (var(--row-height) + var(--row-gap))) - var(
+            --row-gap
+          )
+      );
+    }
+
+    .card.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .card > * {
+      display: block;
+      height: 100%;
     }
   `;
 }
