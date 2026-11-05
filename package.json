@@ -33,7 +33,7 @@
     "@babel/preset-env": "8.0.7",
     "@oxlint/plugins": "1.91.0",
     "@rollup/plugin-babel": "7.1.0",
-    "@timmo001/oxlint-rules": "0.6.3",
+    "@timmo001/oxlint-rules": "0.6.4",
     "oxlint": "1.91.0",
     "oxlint-tsgolint": "7.0.2005",
     "prettier": "3.9.10",
