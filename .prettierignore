@@ -3,4 +3,8 @@ dist
 .hass_dev/*
 package-lock.json
 package.json
+pnpm-lock.yaml
+.mise
+vendor
+AGENTS.md
 .agents/skills

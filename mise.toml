@@ -1,0 +1,41 @@
+# The pinned tools and tasks for this card. CI runs the shared workflows, and
+# the hk pre-push hook runs the lints.
+min_version = "2025.1.0"
+
+[tools]
+node = "26.13.1"
+pnpm = "12.21.0"
+hk = "2.11.1"
+pkl = "0.33.0"
+actionlint = "1.7.12"
+shellcheck = "0.11.0"
+"npm:markdownlint-cli2" = "0.24.1"
+"pipx:yamllint" = "1.38.0"
+
+[tasks.install]
+description = "Install dependencies"
+run = "pnpm install --frozen-lockfile"
+
+[tasks.lint]
+description = "Lint with the shared Oxlint rules"
+depends = ["install"]
+run = "pnpm run lint"
+
+[tasks.format]
+description = "Format the repository"
+depends = ["install"]
+run = "pnpm run format"
+
+[tasks."format:check"]
+description = "Check formatting without writing"
+depends = ["install"]
+run = "pnpm exec prettier --check ."
+
+[tasks.build]
+description = "Build the card into dist/"
+depends = ["install"]
+run = "pnpm run build"
+
+[tasks.check]
+description = "Lint, check formatting and build"
+depends = ["lint", "format:check", "build"]
