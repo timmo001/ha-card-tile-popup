@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# The remote paths are expanded on this side on purpose, and the messages quote
+# backticks in single quotes.
+# shellcheck disable=SC2016,SC2029
 
 set -euo pipefail
 
@@ -53,11 +56,6 @@ set +a
 
 SSH_ARGS=()
 RSYNC_RSH="ssh"
-REMOTE_TRANSFER_USER="${PUBLISH_TARGET%%@*}"
-
-if [[ "${PUBLISH_TARGET}" != *"@"* ]]; then
-  REMOTE_TRANSFER_USER="${USER}"
-fi
 
 if [[ -n "${PUBLISH_PORT:-}" ]]; then
   SSH_ARGS+=("-p" "${PUBLISH_PORT}")

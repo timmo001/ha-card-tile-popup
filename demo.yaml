@@ -1,3 +1,4 @@
+---
 # Live demo on https://timmo.dev/demos/ha-card-tile-popup, rendered with Home
 # Assistant's embed components against mocked entities. It's read from each
 # release, so it has to match that release's card.

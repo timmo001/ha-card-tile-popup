@@ -1,0 +1,22 @@
+// Pre-push checks: the shared base from timmo001/workflows, with Oxlint run
+// through this repository's pnpm install instead of Bun.
+amends "package://github.com/timmo001/workflows/releases/download/20261114.0/hk-base@20261114.0.0#/base.pkl"
+
+exclude = List("vendor/**", ".agents/skills/**", ".mise/**", "pnpm-lock.yaml")
+
+hooks {
+  ["pre-push"] {
+    steps {
+      ["oxlint"] {
+        check = "pnpm exec oxlint {{files}}"
+      }
+    }
+  }
+  ["check"] {
+    steps {
+      ["oxlint"] {
+        check = "pnpm exec oxlint {{files}}"
+      }
+    }
+  }
+}
