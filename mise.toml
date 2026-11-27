@@ -4,7 +4,7 @@ min_version = "2025.1.0"
 
 [tools]
 node = "26.13.1"
-pnpm = "12.23.0"
+pnpm = "12.24.0"
 hk = "2.14.0"
 pkl = "0.33.1"
 actionlint = "1.7.12"
